@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>เงินบ้านเรา - อ้อม & ตูน</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Sarabun & Kanit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background-color: #F7F6F2; /* ครีมข้าวโอ๊ตอุ่น สบายตา */
+      color: #26332C; /* เขียวอมเทาเข้ม อ่านง่ายและสบายตากว่าสีดำ */
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-heading {
+      font-family: 'Kanit', sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="pb-28">
+
+  <!-- ================= Header สีเขียวป่าสนตุ่น Forest Sage ================= -->
+  <header class="bg-[#2E4A3E] text-white sticky top-0 z-30 shadow-md">
+    <div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center gap-2.5">
+        <span class="text-amber-200 text-2xl">🌿</span>
+        <div>
+          <h1 class="text-sm md:text-base font-bold font-heading tracking-wide flex items-center gap-1.5">
+            เงินบ้านเรา <span class="text-xs bg-[#3E6152] text-emerald-100 font-normal px-2 py-0.5 rounded-full">บันทึกรายวัน & ช่วยกันจ่าย</span>
+          </h1>
+          <p class="text-[11px] text-emerald-100/75">อ้อม & ตูน</p>
+        </div>
+      </div>
+
+      <!-- เมนูแถบด้านบน โทนข้าวโอ๊ต & อบอุ่น -->
+      <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-1">
+        <button onclick="switchTab('daily')" id="nav-daily" class="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#E8DECE] text-[#24352D] shadow-sm transition-all whitespace-nowrap">
+          <span>⚡</span> บันทึกประจำวัน
+        </button>
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-xl text-emerald-100 hover:bg-[#3D5E50] transition-all whitespace-nowrap">
+          <span>📊</span> กระเป๋าเงิน & คุมงบ
+        </button>
+        <button onclick="switchTab('bills')" id="nav-bills" class="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-xl text-emerald-100 hover:bg-[#3D5E50] transition-all whitespace-nowrap">
+          <span>📋</span> บิลที่ต้องชำระ/หนี้
+        </button>
+        <button onclick="switchTab('accounts')" id="nav-accounts" class="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-xl text-emerald-100 hover:bg-[#3D5E50] transition-all whitespace-nowrap">
+          <span>🏛️</span> ตั้งค่าแผนงบ & บัญชี
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= แถบเลือกเดือน & สถานะ Cloud ================= -->
+  <div class="bg-white border-b border-[#E7E4DC] shadow-xs">
+    <div class="max-w-5xl mx-auto px-4 py-2 flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold text-[#62736A]">เดือนที่ดูข้อมูล:</span>
+        <select id="monthSelector" onchange="onMonthChange(this.value)" class="bg-[#F2EFE9] text-[#2E4A3E] font-bold text-xs rounded-lg px-2.5 py-1 border border-[#D5D0C5] focus:outline-none focus:ring-2 focus:ring-[#2E4A3E]">
+          <!-- Populated by JS -->
+        </select>
+        <span id="syncBadge" class="inline-flex items-center gap-1 text-[11px] bg-[#EAF2ED] text-[#266046] px-2 py-0.5 rounded-md border border-[#C5DDCF] font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#266046]"></span> พร้อมใช้งาน
+        </span>
+      </div>
+
+      <button onclick="toggleConfigModal()" class="text-xs text-[#3D5E50] hover:text-[#263D33] font-bold flex items-center gap-1">
+        <span>⚙️</span> ซิงค์ 2 เครื่อง
+      </button>
+    </div>
+  </div>
+
+  <main class="max-w-5xl mx-auto p-3 md:p-5 space-y-4">
+
+    <!-- ======================================================== -->
+    <!-- แท็บ 1: บันทึกรายวันเป็นหลัก (DAILY RECORD)              -->
+    <!-- ======================================================== -->
+    <div id="tabContent-daily" class="space-y-4">
+
+      <!-- กล่อง Action: ปุ่มกดบันทึกด่วน โทน Forest Sage -->
+      <div class="bg-gradient-to-r from-[#2E4A3E] to-[#406655] rounded-2xl p-4 text-white shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div>
+          <span class="text-xs font-medium text-[#DDE8E0] block">✨ เลือกระบุคนจ่าย บันทึกคลิกเดียวเชื่อมเข้าบิลอัตโนมัติ</span>
+          <h2 class="text-base md:text-lg font-bold font-heading">ลงบันทึก รายรับ / รายจ่าย วันนี้</h2>
+          <p class="text-[11px] text-emerald-100/80">จ่ายบิลไม่ถึงงบก็ถือว่าชำระแล้วได้ ระบบจะนำยอดจ่ายจริงไปหักในกระเป๋าให้อัตโนมัติ</p>
+        </div>
+        <button onclick="openTxModal()" class="w-full sm:w-auto px-5 py-2.5 bg-[#E8DECE] hover:bg-[#DDD1BE] text-[#26352E] font-bold font-heading text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
+          <span class="text-lg">➕</span> บันทึกรายการใหม่
+        </button>
+      </div>
+
+      <!-- รายการบันทึกประจำวัน -->
+      <div class="bg-white rounded-2xl border border-[#E7E4DC] shadow-xs overflow-hidden">
+        <div class="p-3.5 md:p-4 border-b border-[#F0EDE6] flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span class="text-base">📅</span>
+            <h3 class="text-sm font-bold font-heading text-[#26332C]">ประวัติบันทึกประจำวัน (เรียงจากล่าสุด)</h3>
+          </div>
+          <span class="text-xs font-bold text-[#2E4A3E] bg-[#EBF2EE] border border-[#D0E2D7] px-2.5 py-1 rounded-lg" id="quickTxCount">
+            📝 รวมบันทึก 0 รายการ
+          </span>
+        </div>
+
+        <div id="dailyTxList" class="divide-y divide-[#F4F1EB]">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- แท็บ 2: แดชบอร์ดสรุปยอด & กระเป๋าเงินแยกคน               -->
+    <!-- ======================================================== -->
+    <div id="tabContent-dashboard" class="hidden space-y-4">
+
+      <!-- แถบแจ้งเตือนช่วยเหลือกัน -->
+      <div id="walletAlertBanner" class="hidden rounded-2xl p-3.5 text-xs flex items-center justify-between transition-all">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- การ์ดแยกกระเป๋าเงิน "ตูน 🧔" vs "อ้อม 👩" -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        
+        <!-- กระเป๋าเงินตูน (โทนเขียวมิ้นต์เสจ Sage Mint) -->
+        <div class="bg-white rounded-2xl border-2 border-[#8BAA9B]/50 shadow-xs p-4 space-y-3">
+          <div class="flex justify-between items-center border-b border-[#F0EDE6] pb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-9 h-9 rounded-xl bg-[#E8F0EC] flex items-center justify-center text-lg shadow-2xs">🧔</span>
+              <div>
+                <h3 class="font-bold text-sm text-[#1F332A] font-heading">กระเป๋าเงินตูน</h3>
+                <span class="text-[10px] text-[#2E5443] font-semibold bg-[#E8F0EC] px-1.5 py-0.5 rounded">เงินเดือนตูน</span>
+              </div>
+            </div>
+            <button onclick="openPersonDetailsModal('toon')" class="text-xs text-[#2E5443] bg-[#E8F0EC] hover:bg-[#D9E7E0] px-2.5 py-1 rounded-lg font-bold border border-[#BED7CA] transition-all flex items-center gap-1">
+              <span>🔍</span> ดูรายการที่จ่าย
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-[#F7F6F2] p-2.5 rounded-xl border border-[#E9E6DD]">
+              <span class="text-[10px] text-stone-500 block">รายรับตูน (เงินเดือน)</span>
+              <strong class="text-sm font-bold text-stone-800" id="walletToonIncome">฿0.00</strong>
+            </div>
+            <div class="bg-[#F7F6F2] p-2.5 rounded-xl border border-[#E9E6DD]">
+              <span class="text-[10px] text-stone-500 block">ตูนจ่ายไปแล้วทั้งหมด</span>
+              <strong class="text-sm font-bold text-[#C86D51]" id="walletToonExpense">฿0.00</strong>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl flex justify-between items-center transition-all" id="walletToonBalanceBox">
+            <div>
+              <span class="text-xs font-bold block" id="walletToonBalanceTitle">เงินคงเหลือในกระเป๋าตูน:</span>
+              <span class="text-[10px] opacity-75" id="walletToonStatusSub">สภาพคล่องปกติ</span>
+            </div>
+            <strong class="text-lg font-extrabold font-heading" id="walletToonBalance">฿0.00</strong>
+          </div>
+        </div>
+
+        <!-- กระเป๋าเงินอ้อม (โทนพีชอบอุ่น Warm Peach) -->
+        <div class="bg-white rounded-2xl border-2 border-[#E5AA9A]/50 shadow-xs p-4 space-y-3">
+          <div class="flex justify-between items-center border-b border-[#F0EDE6] pb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-9 h-9 rounded-xl bg-[#FBF0EC] flex items-center justify-center text-lg shadow-2xs">👩</span>
+              <div>
+                <h3 class="font-bold text-sm text-[#4E2A20] font-heading">กระเป๋าเงินอ้อม</h3>
+                <span class="text-[10px] text-[#A64C33] font-semibold bg-[#FBF0EC] px-1.5 py-0.5 rounded">ร้านอุทร + หวย</span>
+              </div>
+            </div>
+            <button onclick="openPersonDetailsModal('aom')" class="text-xs text-[#A64C33] bg-[#FBF0EC] hover:bg-[#F8DFD6] px-2.5 py-1 rounded-lg font-bold border border-[#ECC1B5] transition-all flex items-center gap-1">
+              <span>🔍</span> ดูรายการที่จ่าย
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-[#F7F6F2] p-2.5 rounded-xl border border-[#E9E6DD]">
+              <span class="text-[10px] text-stone-500 block">รายรับอ้อมรวม</span>
+              <strong class="text-sm font-bold text-stone-800" id="walletAomIncome">฿0.00</strong>
+            </div>
+            <div class="bg-[#F7F6F2] p-2.5 rounded-xl border border-[#E9E6DD]">
+              <span class="text-[10px] text-stone-500 block">อ้อมจ่ายไปแล้วทั้งหมด</span>
+              <strong class="text-sm font-bold text-[#C86D51]" id="walletAomExpense">฿0.00</strong>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl flex justify-between items-center transition-all" id="walletAomBalanceBox">
+            <div>
+              <span class="text-xs font-bold block" id="walletAomBalanceTitle">เงินคงเหลือในกระเป๋าอ้อม:</span>
+              <span class="text-[10px] opacity-75" id="walletAomStatusSub">สภาพคล่องปกติ</span>
+            </div>
+            <strong class="text-lg font-extrabold font-heading" id="walletAomBalance">฿0.00</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- สรุปภาพรวมครอบครัว -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+        <div class="bg-white rounded-2xl p-3.5 border border-[#E7E4DC] shadow-xs">
+          <span class="text-[11px] text-stone-400 font-medium block">รายรับรวมทั้งบ้าน</span>
+          <div id="dashTotalIncome" class="text-lg font-bold font-heading text-stone-800 mt-0.5">฿0.00</div>
+        </div>
+        <div class="bg-white rounded-2xl p-3.5 border border-[#E7E4DC] shadow-xs">
+          <span class="text-[11px] text-stone-400 font-medium block">รายจ่ายรวมที่จ่ายจริงแล้ว</span>
+          <div id="dashTotalExpense" class="text-lg font-bold font-heading text-[#C86D51] mt-0.5">฿0.00</div>
+        </div>
+        <div class="bg-white rounded-2xl p-3.5 border border-[#E7E4DC] shadow-xs col-span-2 sm:col-span-1">
+          <span class="text-[11px] text-stone-400 font-medium block">เงินคงเหลือรวม 2 คน</span>
+          <div id="dashTotalNet" class="text-lg font-bold font-heading text-[#2E6B4E] mt-0.5">฿0.00</div>
+        </div>
+      </div>
+
+      <!-- แดชบอร์ดติดตามงบรายวัน -->
+      <div class="bg-white rounded-2xl border border-[#E7E4DC] shadow-xs p-4 md:p-5 space-y-3">
+        <div class="border-b border-[#F0EDE6] pb-2 flex justify-between items-center">
+          <div>
+            <h3 class="text-sm font-bold font-heading text-[#26332C] flex items-center gap-1.5">
+              <span>🎯</span> ติดตามงบประมาณรายจ่ายผันแปร
+            </h3>
+            <p class="text-[11px] text-stone-400">เปรียบเทียบงบประมาณตั้งต้น vs ยอดรวมที่ใช้จริง</p>
+          </div>
+        </div>
+
+        <div id="budgetTrackerContainer" class="space-y-3 pt-1">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- แท็บ 3: บิลที่ต้องชำระ/หนี้                              -->
+    <!-- ======================================================== -->
+    <div id="tabContent-bills" class="space-y-4 hidden">
+      
+      <div class="bg-white rounded-2xl border border-[#E7E4DC] shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-[#F0EDE6] flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <h3 class="text-sm font-bold font-heading text-[#26332C] flex items-center gap-1.5">
+              <span>📋</span> ตารางบิลที่ต้องชำระ & หนี้สิน
+            </h3>
+            <p class="text-[11px] text-stone-400">แสดงคู่กัน: <strong>ยอดงบ</strong> และ <strong>ยอดชำระจริง</strong> (จัดการเพิ่ม/ลดบิลได้ที่แท็บตั้งค่าแผนงบ)</p>
+          </div>
+          <span class="text-xs font-bold text-[#2E4A3E] bg-[#EBF2EE] border border-[#CFE1D6] px-2.5 py-1 rounded-lg" id="fixedBillsTotalBadge">
+            งบรวม: ฿0
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-stone-700">
+            <thead class="bg-[#F8F7F3] text-stone-500 font-bold border-b border-[#E7E4DC]">
+              <tr>
+                <th class="py-2.5 px-3 text-center w-20">กำหนดจ่าย</th>
+                <th class="py-2.5 px-3">รายการ</th>
+                <th class="py-2.5 px-3 text-center w-28">ผู้จ่ายบิลนี้</th>
+                <th class="py-2.5 px-3 text-right">ยอดงบ</th>
+                <th class="py-2.5 px-3 text-right">ยอดชำระจริง</th>
+                <th class="py-2.5 px-3 text-center w-36">สถานะการชำระ</th>
+              </tr>
+            </thead>
+            <tbody id="fixedBillsTableBody" class="divide-y divide-[#F4F1EB]">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- สรุปหนี้สินระยะยาวอ้อม -->
+      <div class="bg-white rounded-2xl p-4 border border-[#E7E4DC] shadow-xs space-y-3">
+        <h4 class="text-xs font-bold font-heading text-[#26332C] flex items-center gap-1.5">
+          <span>💳</span> รายละเอียดหนี้สินระยะยาว (ภาระของอ้อม)
+        </h4>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+          <div class="bg-[#F9F8F5] p-3 rounded-xl border border-[#E7E4DC]">
+            <div class="flex justify-between font-bold text-stone-800">
+              <span>📱 ผ่อนโทรศัพท์อ้อม</span>
+              <span class="text-[#2E6B4E] font-semibold">งวด 7/36</span>
+            </div>
+            <div class="text-stone-500 mt-1">1,600 บ./ด. (เหลือ ~46,400 บ.)</div>
+            <span class="text-[10px] text-[#2E6B4E] block mt-1">ครบ 36 งวด ย้ายเข้าเงินฉุกเฉิน</span>
+          </div>
+
+          <div class="bg-[#F9F8F5] p-3 rounded-xl border border-[#E7E4DC]">
+            <div class="flex justify-between font-bold text-stone-800">
+              <span>🏦 สินเชื่อ BK</span>
+              <span class="text-[#B56728] font-semibold">~60 เดือน</span>
+            </div>
+            <div class="text-stone-500 mt-1">1,000 บ./ด. (ยอดประมาณการ ~60,000 บ.)</div>
+          </div>
+
+          <div class="bg-[#F9F8F5] p-3 rounded-xl border border-[#E7E4DC]">
+            <div class="flex justify-between font-bold text-stone-800">
+              <span>👵 คืนเงินแม่</span>
+              <span class="text-[#2E4A3E] font-semibold">~39 เดือน</span>
+            </div>
+            <div class="text-stone-500 mt-1">5,000 บ./ด. (ยอดประมาณการ ~195,000 บ.)</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- แท็บ 4: ตั้งค่าแผนงบประมาณ & บัญชี (MASTER PLAN MANAGER)  -->
+    <!-- ======================================================== -->
+    <div id="tabContent-accounts" class="hidden space-y-4">
+      
+      <!-- ส่วนนำ: อธิบายฟังก์ชัน -->
+      <div class="bg-gradient-to-r from-[#2E4A3E] to-[#3B5D4D] text-white rounded-2xl p-4 shadow-sm flex justify-between items-center">
+        <div>
+          <h3 class="text-base font-bold font-heading flex items-center gap-1.5">
+            <span>⚙️</span> ศูนย์กลางตั้งค่าแผนงบประมาณ & ค่าใช้จ่าย
+          </h3>
+          <p class="text-xs text-emerald-100/90 mt-0.5">
+            ปรับเปลี่ยนตัวเลข เพิ่มหรือลดหมวดหมู่ที่นี่ ระบบจะเชื่อมโยงไปที่ <strong>บันทึกรายวัน, แดชบอร์ดคุมงบ, และตารางบิล</strong> อัตโนมัติ
+          </p>
+        </div>
+      </div>
+
+      <!-- 1. จัดการหมวดหมู่งบประมาณรายจ่ายผันแปร -->
+      <div class="bg-white rounded-2xl p-4 md:p-5 border border-[#E7E4DC] shadow-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-[#F0EDE6] pb-2.5">
+          <div>
+            <h4 class="text-sm font-bold font-heading text-[#26332C] flex items-center gap-1.5">
+              <span>🎯</span> 1. หมวดงบประมาณรายจ่ายผันแปร (ใช้บันทึกรายวัน & ติดตามงบ)
+            </h4>
+            <p class="text-[11px] text-stone-400">เพิ่มค่าอาหารแมว ค่าน้ำมัน หรือปรับงบประมาณประจำเดือนได้ที่นี่</p>
+          </div>
+          <button onclick="promptAddNewVariableBudget()" class="px-3 py-1.5 bg-[#2E6B4E] hover:bg-[#25573F] text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1">
+            <span>➕</span> เพิ่มหมวดงบใหม่
+          </button>
+        </div>
+
+        <div id="planVariableBudgetList" class="space-y-2">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- 2. จัดการบิลประจำงวดคงที่ & หนี้สิน -->
+      <div class="bg-white rounded-2xl p-4 md:p-5 border border-[#E7E4DC] shadow-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-[#F0EDE6] pb-2.5">
+          <div>
+            <h4 class="text-sm font-bold font-heading text-[#26332C] flex items-center gap-1.5">
+              <span>📋</span> 2. ตารางบิลประจำงวด & หนี้สินที่ต้องชำระ
+            </h4>
+            <p class="text-[11px] text-stone-400">ปรับยอดงบ กำหนดวันจ่าย หรือเพิ่มบิลใหม่ที่ต้องเคลียร์ในแต่ละเดือน</p>
+          </div>
+          <button onclick="promptAddNewFixedBill()" class="px-3 py-1.5 bg-[#2E4A3E] hover:bg-[#20352C] text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1">
+            <span>➕</span> เพิ่มบิลใหม่
+          </button>
+        </div>
+
+        <div id="planFixedBillList" class="space-y-2">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- 3. แผนจัดสรรเงินแยกเก็บเข้าบัญชี -->
+      <div class="bg-white rounded-2xl p-4 md:p-5 border border-[#E7E4DC] shadow-xs space-y-3">
+        <div class="border-b border-[#F0EDE6] pb-2.5">
+          <h4 class="text-sm font-bold font-heading text-[#26332C] flex items-center gap-1.5">
+            <span>🏛️</span> 3. แผนจัดสรรเงินแยกเก็บเข้าบัญชี (ห้ามปะปนเงินกินอยู่)
+          </h4>
+          <p class="text-[11px] text-stone-400">บัญชีอนาคตลูก, เงินสำรองซ่อมบ้าน, และบัญชีพักจ่ายบิล</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="p-4 rounded-xl bg-[#EEF4F0] border border-[#D0E0D6] space-y-1.5">
+            <span class="font-bold text-xs text-[#204432] block">👶 บัญชี 1: อนาคตลูกรัก</span>
+            <div class="text-base font-bold text-[#2E5A44] font-heading">10,000 ฿/เดือน</div>
+            <p class="text-[11px] text-[#3A604D] leading-relaxed">
+              • ค่าเทอมลูกสะสม 8,000 บ.<br>
+              • เงินฉุกเฉินลูก 2,000 บ.<br>
+              • <em>แนะนำ:</em> เปิด Make by KBank หรือ Kept แยก Cloud Pocket ไว้ ไม่ผูกบัตรเดบิต
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[#F7F3EB] border border-[#E3D9C9] space-y-1.5">
+            <span class="font-bold text-xs text-[#52442C] block">🏠 บัญชี 2: เงินสำรองบ้าน</span>
+            <div class="text-base font-bold text-[#7E6135] font-heading">1,000 ฿/เดือน</div>
+            <p class="text-[11px] text-[#695436] leading-relaxed">
+              • สะสมเดือนละ 1,000 บาท<br>
+              • ใช้เฉพาะซ่อมบ้าน ซ่อมแอร์ ปั๊มน้ำ โดยไม่ต้องดึงเงินกินอยู่มาใช้
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-[#F0EBE5] border border-[#D9D0C5] space-y-1.5">
+            <span class="font-bold text-xs text-[#45372C] block">📚 บัญชี 3: พักเงินจ่ายบิล</span>
+            <div class="text-base font-bold text-[#624D3E] font-heading">1,500 ฿/เดือน</div>
+            <p class="text-[11px] text-[#554336] leading-relaxed">
+              • ค่าเรียนพิเศษลูก (1,500 บ.) จ่ายเดือนละครั้ง<br>
+              • เมื่อถึงกำหนดวันที่ 5 ของเดือน สแกนจ่ายตรงงวดทันที
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================= Modal: บันทึกรายการใหม่ประจำวัน ================= -->
+  <div id="txModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-3.5 border border-[#E7E4DC] max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-[#F0EDE6] pb-2">
+        <h3 class="font-bold font-heading text-[#26332C] text-sm flex items-center gap-1.5">
+          <span>📝</span> บันทึกรายการประจำวัน
+        </h3>
+        <button onclick="closeTxModal()" class="text-stone-400 hover:text-stone-600 text-lg">&times;</button>
+      </div>
+
+      <!-- สลับประเภท รายจ่าย / รายรับ -->
+      <div class="grid grid-cols-2 gap-1.5 bg-[#F2EFE9] p-1 rounded-xl text-xs font-bold">
+        <button type="button" onclick="setTxType('expense')" id="btnTxTypeExpense" class="py-2 rounded-lg bg-[#C86D51] text-white shadow-xs text-center transition-all">
+          💸 รายจ่าย
+        </button>
+        <button type="button" onclick="setTxType('income')" id="btnTxTypeIncome" class="py-2 rounded-lg text-stone-600 text-center transition-all">
+          💰 รายรับ
+        </button>
+      </div>
+
+      <!-- ระบุว่าใครเป็นคนจ่ายเงิน (ตูน หรือ อ้อม) -->
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-stone-700" id="lblTxPayer">ใครเป็นคนจ่ายเงิน:</label>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button type="button" onclick="setTxPayer('toon')" id="btnPayerToon" class="py-2 rounded-xl border border-stone-200 bg-[#F9F8F5] text-stone-700 font-semibold text-xs flex items-center justify-center gap-1 transition-all">
+            <span>🧔</span> ตูน
+          </button>
+          <button type="button" onclick="setTxPayer('aom')" id="btnPayerAom" class="py-2 rounded-xl border border-stone-200 bg-[#F9F8F5] text-stone-700 font-semibold text-xs flex items-center justify-center gap-1 transition-all">
+            <span>👩</span> อ้อม
+          </button>
+        </div>
+      </div>
+
+      <!-- วันที่ -->
+      <div class="space-y-1">
+        <div class="flex justify-between items-center">
+          <label class="text-xs font-semibold text-stone-700">วันที่ทำรายการ:</label>
+          <button type="button" onclick="setTxDateToday()" class="text-[11px] text-[#2E4A3E] hover:underline font-bold">เป็นวันนี้</button>
+        </div>
+        <input type="date" id="txDate" class="w-full text-xs font-semibold bg-[#F9F8F5] border border-[#D5D0C5] rounded-lg p-2 focus:bg-white focus:outline-none">
+      </div>
+
+      <!-- หมวดหมู่รายการ -->
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-stone-700 flex justify-between items-center">
+          <span>หมวดหมู่ / บิลที่จ่าย:</span>
+          <span class="text-[10px] text-[#3D5E50] font-medium">* เลือกบิลเพื่อเชื่อมโยงทันที</span>
+        </label>
+        <select id="txCategory" class="w-full text-xs font-semibold bg-[#F9F8F5] border border-[#D5D0C5] rounded-lg p-2 focus:bg-white focus:outline-none text-stone-800">
+          <!-- Populated by JS -->
+        </select>
+      </div>
+
+      <!-- จำนวนเงินที่จ่ายจริง -->
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-stone-700">จำนวนเงินที่จ่ายจริง (บาท):</label>
+        <div class="relative">
+          <input type="number" step="0.01" id="txAmount" placeholder="0.00" class="w-full text-right font-bold text-lg bg-[#F9F8F5] border border-[#D5D0C5] rounded-lg p-2 pr-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2E4A3E]">
+          <span class="text-xs text-stone-400 absolute left-3 top-3">฿</span>
+        </div>
+      </div>
+
+      <!-- บันทึกช่วยจำ -->
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-stone-700">โน้ตช่วยจำ (ถ้ามี):</label>
+        <input type="text" id="txNote" placeholder="เช่น เติมปั๊ม ปตท., ซื้อกับข้าวเย็น" class="w-full text-xs bg-[#F9F8F5] border border-[#D5D0C5] rounded-lg p-2 focus:bg-white focus:outline-none">
+      </div>
+
+      <div class="pt-2">
+        <button onclick="saveDailyTransaction()" class="w-full bg-[#2E4A3E] hover:bg-[#20352C] text-white font-bold py-2.5 rounded-xl text-xs shadow-md flex items-center justify-center gap-1.5">
+          <span>✓</span> บันทึกและเชื่อมโยงทันที
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Modal: บันทึกชำระบิลโดยตรง ================= -->
+  <div id="billPayModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-3.5 border border-[#E7E4DC]">
+      <div class="flex justify-between items-center border-b border-[#F0EDE6] pb-2">
+        <h3 class="font-bold font-heading text-[#26332C] text-sm flex items-center gap-1.5">
+          <span>🗓️</span> จัดการบิล & ใส่ยอดชำระจริง
+        </h3>
+        <button onclick="closeBillPayModal()" class="text-stone-400 hover:text-stone-600 text-lg">&times;</button>
+      </div>
+
+      <div class="bg-[#F9F8F5] p-3 rounded-xl border border-[#E7E4DC] space-y-1">
+        <div class="font-bold text-sm text-stone-800" id="bpmTitle">-</div>
+        <div class="flex justify-between text-xs text-stone-500">
+          <span>กำหนดจ่าย: <strong id="bpmDueDate">-</strong></span>
+          <span>ยอดงบเดิม: <strong class="text-stone-800" id="bpmBudgetAmount">฿0</strong></span>
+        </div>
+      </div>
+
+      <!-- ยอดชำระจริง -->
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-stone-700">ยอดที่ชำระจริง (บาท):</label>
+        <div class="relative">
+          <input type="number" step="0.01" id="bpmActualAmount" class="w-full text-right font-bold text-sm bg-white border border-[#D5D0C5] rounded-lg p-2 pr-3 focus:outline-none focus:ring-2 focus:ring-[#2E4A3E]">
+          <span class="text-xs text-stone-400 absolute left-3 top-2.5">฿</span>
+        </div>
+      </div>
+
+      <!-- เลือกคนจ่ายบิลนี้ -->
+      <div class="space-y-1">
+        <label class="text-xs font-semibold text-stone-700">ใครเป็นคนจ่ายบิลนี้:</label>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button type="button" onclick="setBpmPayer('toon')" id="bpmBtnToon" class="py-2 rounded-xl border border-stone-200 bg-[#F9F8F5] text-stone-700 font-bold text-xs flex items-center justify-center gap-1">
+            <span>🧔</span> ตูน
+          </button>
+          <button type="button" onclick="setBpmPayer('aom')" id="bpmBtnAom" class="py-2 rounded-xl border border-stone-200 bg-[#F9F8F5] text-stone-700 font-bold text-xs flex items-center justify-center gap-1">
+            <span>👩</span> อ้อม
+          </button>
+        </div>
+      </div>
+
+      <!-- วันที่ชำระ -->
+      <div class="space-y-1">
+        <div class="flex justify-between items-center">
+          <label class="text-xs font-semibold text-stone-700">วันที่ชำระเงินจริง:</label>
+          <button type="button" onclick="setBillPaidDateToday()" class="text-[11px] text-[#2E4A3E] hover:underline font-bold">เป็นวันนี้</button>
+        </div>
+        <input type="date" id="bpmPaidDate" class="w-full text-xs font-semibold bg-[#F9F8F5] border border-[#D5D0C5] rounded-lg p-2 focus:bg-white focus:outline-none">
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="confirmBillPaid()" class="flex-1 bg-[#2E6B4E] hover:bg-[#25573F] text-white font-bold py-2 rounded-xl text-xs shadow-xs">
+          ✓ ยืนยันชำระแล้ว
+        </button>
+        <button onclick="markBillAsPending()" id="bpmBtnUnpay" class="px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2 rounded-xl text-xs">
+          เปลี่ยนเป็นรอชำระ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Modal: ดูรายการแจกแจงที่จ่ายของแต่ละคน ================= -->
+  <div id="personDetailsModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-3.5 border border-[#E7E4DC] max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center border-b border-[#F0EDE6] pb-2">
+        <h3 class="font-bold font-heading text-[#26332C] text-sm flex items-center gap-1.5" id="pdmTitle">
+          รายการที่จ่าย
+        </h3>
+        <button onclick="closePersonDetailsModal()" class="text-stone-400 hover:text-stone-600 text-lg">&times;</button>
+      </div>
+
+      <div class="bg-[#F9F8F5] p-2.5 rounded-xl border border-[#E7E4DC] flex justify-between items-center text-xs">
+        <span class="text-stone-600">รวมยอดที่คนนี้จ่ายจริงไปแล้ว:</span>
+        <strong class="text-[#C86D51] text-sm font-bold font-heading" id="pdmTotalPaid">฿0.00</strong>
+      </div>
+
+      <div id="pdmListContainer" class="overflow-y-auto space-y-2 flex-1 pr-1 text-xs">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal ตั้งค่า Firebase ซิงค์ 2 เครื่อง -->
+  <div id="configModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-3 border border-[#E7E4DC]">
+      <div class="flex justify-between items-center border-b border-[#F0EDE6] pb-2">
+        <h3 class="font-bold font-heading text-[#26332C] text-sm">⚙️ เชื่อมต่อฐานข้อมูล 2 เครื่อง</h3>
+        <button onclick="toggleConfigModal()" class="text-stone-400 hover:text-stone-600 text-lg">&times;</button>
+      </div>
+      <p class="text-xs text-stone-500 leading-relaxed">
+        ใส่ Firebase Realtime Database URL เพื่อให้อ้อมและตูนใช้ข้อมูลร่วมกัน:
+      </p>
+      <input type="text" id="firebaseUrlInput" class="w-full border border-[#D5D0C5] rounded-lg p-2 text-xs font-mono bg-[#F9F8F5]" placeholder="https://your-project.firebaseio.com">
+      <button onclick="saveFirebaseConfig()" class="w-full bg-[#2E4A3E] hover:bg-[#20352C] text-white font-semibold py-2 rounded-lg text-xs shadow-xs">
+        บันทึกการเชื่อมต่อ
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ตาราง Shopee
+    const shopeeSchedule = {
+      '2026-10': 6122.49,
+      '2026-11': 5859.88,
+      '2026-12': 5856.56,
+      '2027-01': 4019.32,
+      '2027-02': 4019.32,
+      '2027-03': 4019.32,
+      '2027-04': 4019.32,
+      '2027-05': 4019.32,
+      '2027-06': 4019.32,
+      '2027-07': 4019.32,
+      '2027-08': 4019.32,
+      '2027-09': 4047.04
+    };
+
+    function getDefaultVariableBudgets() {
+      return [
+        { id: 'fuel_toon', name: 'น้ำมันรถตูน', budget: 5000, icon: '⛽' },
+        { id: 'fuel_aom', name: 'น้ำมันรถอ้อม', budget: 2000, icon: '🚗' },
+        { id: 'food', name: 'อาหารการกิน', budget: 3000, icon: '🍲' },
+        { id: 'trip', name: 'เงินเที่ยวครอบครัว', budget: 1000, icon: '🏖️' },
+        { id: 'personal_toon', name: 'เงินส่วนตัวตูน', budget: 1000, icon: '🧔' },
+        { id: 'personal_aom', name: 'เงินส่วนตัวอ้อม', budget: 1000, icon: '👩' },
+        { id: 'other_exp', name: 'ค่าใช้จ่ายทั่วไปอื่นๆ', budget: 0, icon: '🛒' }
+      ];
+    }
+
+    const incomeCategoryConfigs = [
+      { id: 'inc_toon', name: 'เงินเดือนตูน', icon: '🧔' },
+      { id: 'inc_uthon', name: 'รายได้ร้านอุทร (อ้อม)', icon: '🏪' },
+      { id: 'inc_lotto_1', name: 'รายได้จากหวย งวด 1 (อ้อม)', icon: '🎟️' },
+      { id: 'inc_lotto_16', name: 'รายได้จากหวย งวด 16 (อ้อม)', icon: '🎟️' },
+      { id: 'inc_other', name: 'รายรับพิเศษ/อื่นๆ', icon: '💵' }
+    ];
+
+    function getDefaultFixedBills(ym) {
+      return [
+        { id: 'b_water_elec', title: 'ค่าน้ำและค่าไฟ (บิลบ้าน)', amount: 2000, dueDate: '25', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_common', title: 'ค่าส่วนกลางบ้าน', amount: 1000, dueDate: '5', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_wifi', title: 'ไวฟายบ้าน', amount: 600, dueDate: '15', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_netflix', title: 'Netflix', amount: 349, dueDate: '10', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_tuition', title: 'ค่าเทอมเฉลี่ยรายเดือน', amount: 8000, dueDate: '1', paid: false, paidDate: '', note: '🔒 กันสะสม', manualPayer: '', actualAmount: 0 },
+        { id: 'b_tutor', title: 'ค่าเรียนพิเศษลูก (เดือนละครั้ง)', amount: 1500, dueDate: '5', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_kid_emergency', title: 'เงินฉุกเฉินเกี่ยวกับลูก', amount: 2000, dueDate: '1', paid: false, paidDate: '', note: '🔒 กันสะสม', manualPayer: '', actualAmount: 0 },
+        { id: 'b_house_reserve', title: 'เงินสำรองซ่อมบ้าน', amount: 1000, dueDate: '1', paid: false, paidDate: '', note: '🔒 กันสะสม', manualPayer: '', actualAmount: 0 },
+        { id: 'b_phone_toon', title: 'ค่าโทรศัพท์ตูน', amount: 500, dueDate: '18', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        
+        { id: 'b_milk_kid', title: 'ค่านมลูก', amount: 1500, dueDate: '1', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_net_aom', title: 'ค่าโทรศัพท์/เน็ตอ้อม', amount: 499, dueDate: '12', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_phone_aom', title: 'ผ่อนโทรศัพท์อ้อม (งวด 7/36)', amount: 1600, dueDate: '15', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_bk', title: 'สินเชื่อ BK', amount: 1000, dueDate: '20', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_mom', title: 'คืนเงินแม่', amount: 5000, dueDate: '1', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 },
+        { id: 'b_shopee', title: 'Shopee (ตามจริง)', amount: (shopeeSchedule[ym] !== undefined ? shopeeSchedule[ym] : 0), dueDate: '5', paid: false, paidDate: '', manualPayer: '', actualAmount: 0 }
+      ];
+    }
+
+    let currentYM = '2026-10';
+    let currentTxType = 'expense';
+    let currentTxPayer = 'toon';
+    let currentBpmPayer = 'toon';
+    let dbRef = null;
+    let localData = JSON.parse(localStorage.getItem('family_budget_sage_oat_v1') || '{}');
+
+    let activeBillId = null;
+
+    function switchTab(tabId) {
+      const tabs = ['daily', 'dashboard', 'bills', 'accounts'];
+      tabs.forEach(t => {
+        const content = document.getElementById('tabContent-' + t);
+        const btn = document.getElementById('nav-' + t);
+        if (t === tabId) {
+          content.classList.remove('hidden');
+          btn.className = 'flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#E8DECE] text-[#24352D] shadow-sm transition-all whitespace-nowrap';
+        } else {
+          content.classList.add('hidden');
+          btn.className = 'flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-xl text-emerald-100 hover:bg-[#3D5E50] transition-all whitespace-nowrap';
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function initMonthSelector() {
+      const selector = document.getElementById('monthSelector');
+      selector.innerHTML = '';
+      const monthsTH = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      const years = [2026, 2027];
+
+      years.forEach(y => {
+        for (let m = 1; m <= 12; m++) {
+          const ym = `${y}-${String(m).padStart(2, '0')}`;
+          const opt = document.createElement('option');
+          opt.value = ym;
+          opt.innerText = `${monthsTH[m - 1]} ${y + 543}`;
+          if (ym === '2026-10') opt.selected = true;
+          selector.appendChild(opt);
+        }
+      });
+    }
+
+    function onMonthChange(ym) {
+      currentYM = ym;
+      ensureData(currentYM);
+      renderAll();
+    }
+
+    function ensureData(ym) {
+      if (!localData[ym]) {
+        localData[ym] = {
+          transactions: [],
+          variableBudgets: getDefaultVariableBudgets(),
+          fixedBills: getDefaultFixedBills(ym)
+        };
+      }
+      if (!localData[ym].transactions) localData[ym].transactions = [];
+      if (!localData[ym].variableBudgets) localData[ym].variableBudgets = getDefaultVariableBudgets();
+      if (!localData[ym].fixedBills) localData[ym].fixedBills = getDefaultFixedBills(ym);
+    }
+
+    function openTxModal() {
+      setTxType('expense');
+      setTxDateToday();
+
+      const savedPayer = localStorage.getItem('my_default_payer') || 'toon';
+      setTxPayer(savedPayer);
+
+      document.getElementById('txAmount').value = '';
+      document.getElementById('txNote').value = '';
+      
+      document.getElementById('txModal').classList.remove('hidden');
+    }
+
+    function closeTxModal() {
+      document.getElementById('txModal').classList.add('hidden');
+    }
+
+    function populateCategoriesAndBillsDropdown() {
+      const catSelect = document.getElementById('txCategory');
+      catSelect.innerHTML = '';
+
+      if (currentTxType === 'expense') {
+        const optgroupBills = document.createElement('optgroup');
+        optgroupBills.label = '📋 บิลประจำงวด (เชื่อมโยงหน้าบิลอัตโนมัติ)';
+
+        const bills = localData[currentYM]?.fixedBills || [];
+        bills.forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = 'BILL:' + b.id;
+          opt.innerText = `🔗 ${b.title} (งบ ฿${b.amount.toLocaleString()})`;
+          opt.dataset.amount = b.amount;
+          opt.dataset.title = b.title;
+          optgroupBills.appendChild(opt);
+        });
+        catSelect.appendChild(optgroupBills);
+
+        const optgroupDaily = document.createElement('optgroup');
+        optgroupDaily.label = '🛒 ค่าใช้จ่ายทั่วไปรายวัน (ตามแผน)';
+
+        const vBudgets = localData[currentYM]?.variableBudgets || getDefaultVariableBudgets();
+        vBudgets.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = 'CAT:' + c.id;
+          opt.innerText = `${c.icon || '🛒'} ${c.name} ${c.budget > 0 ? `(งบ ฿${c.budget.toLocaleString()})` : ''}`;
+          opt.dataset.title = c.name;
+          optgroupDaily.appendChild(opt);
+        });
+        catSelect.appendChild(optgroupDaily);
+
+        catSelect.onchange = (e) => {
+          const val = e.target.value;
+          const selectedOption = e.target.selectedOptions[0];
+          if (val.startsWith('BILL:')) {
+            const amount = selectedOption.dataset.amount;
+            if (amount) {
+              document.getElementById('txAmount').value = amount;
+              document.getElementById('txNote').value = `จ่ายบิล: ${selectedOption.dataset.title}`;
+            }
+          } else {
+            if (document.getElementById('txNote').value.startsWith('จ่ายบิล:')) {
+              document.getElementById('txNote').value = '';
+            }
+          }
+        };
+
+      } else {
+        incomeCategoryConfigs.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = 'INC:' + c.id;
+          opt.innerText = `${c.icon} ${c.name}`;
+          opt.dataset.title = c.name;
+          catSelect.appendChild(opt);
+        });
+        catSelect.onchange = null;
+      }
+    }
+
+    function setTxType(type) {
+      currentTxType = type;
+      const btnExp = document.getElementById('btnTxTypeExpense');
+      const btnInc = document.getElementById('btnTxTypeIncome');
+      const lblPayer = document.getElementById('lblTxPayer');
+
+      if (type === 'expense') {
+        btnExp.className = 'py-2 rounded-lg bg-[#C86D51] text-white shadow-xs text-center transition-all';
+        btnInc.className = 'py-2 rounded-lg text-stone-600 text-center transition-all';
+        lblPayer.innerText = 'ใครเป็นคนจ่ายเงิน:';
+      } else {
+        btnInc.className = 'py-2 rounded-lg bg-[#2E6B4E] text-white shadow-xs text-center transition-all';
+        btnExp.className = 'py-2 rounded-lg text-stone-600 text-center transition-all';
+        lblPayer.innerText = 'เงินก้อนนี้เป็นรายรับของใคร:';
+      }
+
+      populateCategoriesAndBillsDropdown();
+    }
+
+    function setTxPayer(payer) {
+      currentTxPayer = payer;
+      localStorage.setItem('my_default_payer', payer);
+
+      const btnToon = document.getElementById('btnPayerToon');
+      const btnAom = document.getElementById('btnPayerAom');
+
+      btnToon.className = 'py-2 rounded-xl border border-stone-200 bg-[#F9F8F5] text-stone-700 font-semibold text-xs flex items-center justify-center gap-1 transition-all';
+      btnAom.className = 'py-2 rounded-xl border border-stone-200 bg-[#F9F8F5] text-stone-700 font-semibold text-xs flex items-center justify-center gap-1 transition-all';
+
+      if (payer === 'toon') {
+        btnToon.className = 'py-2 rounded-xl border-2 border-[#52796F] bg-[#E8F0EC] text-[#1F332A] font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs';
+      } else if (payer === 'aom') {
+        btnAom.className = 'py-2 rounded-xl border-2 border-[#D98E7B] bg-[#FBF0EC] text-[#4E2A20] font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs';
+      }
+    }
+
+    function setTxDateToday() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('txDate').value = today;
+    }
+
+    function saveDailyTransaction() {
+      const dateVal = document.getElementById('txDate').value;
+      const selectVal = document.getElementById('txCategory').value;
+      const amount = parseFloat(document.getElementById('txAmount').value) || 0;
+      const note = document.getElementById('txNote').value.trim();
+
+      if (amount <= 0) {
+        alert('กรุณากรอกจำนวนเงินที่มากกว่า 0 บาทครับ');
+        return;
+      }
+
+      const ym = dateVal.substring(0, 7);
+      ensureData(ym);
+
+      let catId = '';
+      let catName = '';
+      let icon = '📝';
+      let linkedBillId = null;
+
+      if (selectVal.startsWith('BILL:')) {
+        linkedBillId = selectVal.replace('BILL:', '');
+        const billObj = localData[ym].fixedBills.find(b => b.id === linkedBillId);
+        catId = linkedBillId;
+        catName = billObj ? billObj.title : 'บิลประจำงวด';
+        icon = '🔗';
+      } else if (selectVal.startsWith('CAT:')) {
+        catId = selectVal.replace('CAT:', '');
+        const vBudgets = localData[ym].variableBudgets || getDefaultVariableBudgets();
+        const catObj = vBudgets.find(c => c.id === catId);
+        catName = catObj ? catObj.name : 'ค่าใช้จ่ายทั่วไป';
+        icon = catObj ? (catObj.icon || '🛒') : '🛒';
+      } else if (selectVal.startsWith('INC:')) {
+        catId = selectVal.replace('INC:', '');
+        const incObj = incomeCategoryConfigs.find(c => c.id === catId);
+        catName = incObj ? incObj.name : 'รายรับ';
+        icon = incObj ? incObj.icon : '💰';
+      }
+
+      const newTx = {
+        id: 'tx_' + Date.now(),
+        date: dateVal,
+        type: currentTxType,
+        payer: currentTxPayer,
+        categoryId: catId,
+        categoryName: catName,
+        icon: icon,
+        amount: amount,
+        note: note,
+        linkedBillId: linkedBillId
+      };
+
+      localData[ym].transactions.unshift(newTx);
+
+      saveData();
+      closeTxModal();
+      renderAll();
+    }
+
+    function deleteTransaction(txId) {
+      if (confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) {
+        const txs = localData[currentYM].transactions;
+        const idx = txs.findIndex(t => t.id === txId);
+        if (idx > -1) {
+          txs.splice(idx, 1);
+          saveData();
+          renderAll();
+        }
+      }
+    }
+
+    function openBillPayModal(billId) {
+      const bill = localData[currentYM].fixedBills.find(b => b.id === billId);
+      if (!bill) return;
+
+      activeBillId = billId;
+      document.getElementById('bpmTitle').innerText = bill.title;
+      document.getElementById('bpmDueDate').innerText = `ทุกวันที่ ${bill.dueDate}`;
+      document.getElementById('bpmBudgetAmount').innerText = `฿${bill.amount.toLocaleString('th-TH')}`;
+      
+      document.getElementById('bpmActualAmount').value = bill.actualAmount > 0 ? bill.actualAmount : bill.amount;
+      document.getElementById('bpmPaidDate').value = bill.paidDate || new Date().toISOString().split('T')[0];
+
+      setBpmPayer(bill.manualPayer || 'toon');
+
+      const btnUnpay = document.getElementById('bpmBtnUnpay');
+      if (bill.paid) {
+        btnUnpay.classList.remove('hidden');
+      } else {
+        btnUnpay.classList.add('hidden');
+      }
+
+      document.getElementById('billPayModal').classList.remove('hidden');
+    }
+
+    function closeBillPayModal() {
+      document.getElementById('billPayModal').classList.add('hidden');
+      activeBillId = null;
+    }
+
+    function setBpmPayer(payer) {
+      currentBpmPayer = payer;
+      const btnToon = document.getElementById('bpmBtnToon');
+      const btnAom = document.getElementById('bpmBtnAom');
+
+      btnToon.className = 'py-2 rounded-xl border border-stone-200 bg-[#F9F8F5] text-stone-700 font-bold text-xs flex items-center justify-center gap-1';
+      btnAom.className = 'py-2 rounded-xl border border-stone-200 bg-[#F9F8F5] text-stone-700 font-bold text-xs flex items-center justify-center gap-1';
+
+      if (payer === 'toon') {
+        btnToon.className = 'py-2 rounded-xl border-2 border-[#52796F] bg-[#E8F0EC] text-[#1F332A] font-bold text-xs flex items-center justify-center gap-1 shadow-2xs';
+      } else if (payer === 'aom') {
+        btnAom.className = 'py-2 rounded-xl border-2 border-[#D98E7B] bg-[#FBF0EC] text-[#4E2A20] font-bold text-xs flex items-center justify-center gap-1 shadow-2xs';
+      }
+    }
+
+    function setBillPaidDateToday() {
+      document.getElementById('bpmPaidDate').value = new Date().toISOString().split('T')[0];
+    }
+
+    function confirmBillPaid() {
+      if (!activeBillId) return;
+      const bill = localData[currentYM].fixedBills.find(b => b.id === activeBillId);
+      if (bill) {
+        const actualVal = parseFloat(document.getElementById('bpmActualAmount').value) || 0;
+        bill.paid = true;
+        bill.actualAmount = actualVal > 0 ? actualVal : bill.amount;
+        bill.manualPayer = currentBpmPayer;
+        bill.paidDate = document.getElementById('bpmPaidDate').value || new Date().toISOString().split('T')[0];
+        saveData();
+        closeBillPayModal();
+        renderAll();
+      }
+    }
+
+    function markBillAsPending() {
+      if (!activeBillId) return;
+      const bill = localData[currentYM].fixedBills.find(b => b.id === activeBillId);
+      if (bill) {
+        bill.paid = false;
+        bill.paidDate = '';
+        bill.manualPayer = '';
+        bill.actualAmount = 0;
+        saveData();
+        closeBillPayModal();
+        renderAll();
+      }
+    }
+
+    function openPersonDetailsModal(personKey) {
+      const modal = document.getElementById('personDetailsModal');
+      const title = document.getElementById('pdmTitle');
+      const totalTxt = document.getElementById('pdmTotalPaid');
+      const list = document.getElementById('pdmListContainer');
+
+      const isToon = personKey === 'toon';
+      title.innerHTML = isToon ? '🧔 รายการที่ตูนจ่ายจริงไปแล้วทั้งหมด' : '👩 รายการที่อ้อมจ่ายจริงไปแล้วทั้งหมด';
+
+      const cur = localData[currentYM];
+      const txs = cur.transactions || [];
+      const bills = cur.fixedBills || [];
+
+      let totalPaid = 0;
+      list.innerHTML = '';
+      let itemCount = 0;
+
+      txs.forEach(t => {
+        if (t.type === 'expense' && t.payer === personKey) {
+          totalPaid += t.amount;
+          itemCount++;
+          const div = document.createElement('div');
+          div.className = 'p-2.5 rounded-xl bg-[#F9F8F5] border border-[#E7E4DC] flex justify-between items-center';
+          div.innerHTML = `
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-stone-800">${t.categoryName}</span>
+                ${t.linkedBillId ? '<span class="text-[9px] bg-amber-100 text-amber-800 px-1 rounded font-bold">🔗 บิล</span>' : ''}
+              </div>
+              <div class="text-[10px] text-stone-400">บันทึกรายวัน • ${t.date} ${t.note ? `(${t.note})` : ''}</div>
+            </div>
+            <strong class="text-[#C86D51] font-heading text-xs">฿${t.amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}</strong>
+          `;
+          list.appendChild(div);
+        }
+      });
+
+      bills.forEach(b => {
+        if (b.paid && !b.hasLinkedTx && b.manualPayer === personKey) {
+          const paidVal = b.actualAmount > 0 ? b.actualAmount : b.amount;
+          totalPaid += paidVal;
+          itemCount++;
+          const div = document.createElement('div');
+          div.className = 'p-2.5 rounded-xl bg-[#F9F8F5] border border-[#E7E4DC] flex justify-between items-center';
+          div.innerHTML = `
+            <div>
+              <div class="font-bold text-stone-800">${b.title}</div>
+              <div class="text-[10px] text-stone-400">บิลประจำงวด • ชำระเมื่อ: ${b.paidDate || '-'} (งบ ฿${b.amount.toLocaleString()})</div>
+            </div>
+            <strong class="text-[#C86D51] font-heading text-xs">฿${paidVal.toLocaleString('th-TH', {minimumFractionDigits: 2})}</strong>
+          `;
+          list.appendChild(div);
+        }
+      });
+
+      if (itemCount === 0) {
+        list.innerHTML = `<div class="text-center py-6 text-stone-400">ยังไม่มีรายการชำระในเดือนนี้</div>`;
+      }
+
+      totalTxt.innerText = `฿${totalPaid.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      modal.classList.remove('hidden');
+    }
+
+    function closePersonDetailsModal() {
+      document.getElementById('personDetailsModal').classList.add('hidden');
+    }
+
+    // จัดการแท็บ 4: ตั้งค่าแผนงบประมาณ & บิล
+    function renderMasterPlanSettings() {
+      ensureData(currentYM);
+      const cur = localData[currentYM];
+      const vBudgets = cur.variableBudgets || getDefaultVariableBudgets();
+      const bills = cur.fixedBills || getDefaultFixedBills(currentYM);
+
+      const vList = document.getElementById('planVariableBudgetList');
+      vList.innerHTML = '';
+      vBudgets.forEach((cfg, idx) => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F9F8F5] border border-[#E7E4DC] text-xs';
+        div.innerHTML = `
+          <div class="flex items-center gap-2 flex-1">
+            <input type="text" value="${cfg.icon || '🛒'}" onchange="updateVariableBudgetIcon(${idx}, this.value)" class="w-8 text-center text-sm bg-white border border-[#D5D0C5] rounded p-1">
+            <input type="text" value="${cfg.name}" onchange="updateVariableBudgetName(${idx}, this.value)" class="font-semibold text-stone-800 bg-transparent focus:bg-white border-b border-transparent focus:border-stone-300 px-1 py-0.5 rounded flex-1">
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-stone-400">งบ:</span>
+            <input type="number" step="100" value="${cfg.budget}" onchange="updateVariableBudgetAmount(${idx}, this.value)" class="w-24 text-right font-bold text-stone-800 bg-white border border-[#D5D0C5] rounded-lg p-1">
+            <button onclick="deleteVariableBudget(${idx})" class="text-stone-300 hover:text-rose-500 p-1 font-bold" title="ลบหมวดนี้">✕</button>
+          </div>
+        `;
+        vList.appendChild(div);
+      });
+
+      const bList = document.getElementById('planFixedBillList');
+      bList.innerHTML = '';
+      bills.forEach((bill, idx) => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F9F8F5] border border-[#E7E4DC] text-xs';
+        div.innerHTML = `
+          <div class="flex-1">
+            <input type="text" value="${bill.title}" onchange="updateFixedBillTitle(${idx}, this.value)" class="font-semibold text-stone-800 bg-transparent focus:bg-white border-b border-transparent focus:border-stone-300 px-1 py-0.5 rounded w-full">
+            <div class="text-[10px] text-stone-400 flex items-center gap-1 mt-0.5 pl-1">
+              <span>กำหนดจ่ายวันที่:</span>
+              <input type="text" value="${bill.dueDate || '1'}" onchange="updateFixedBillDueDate(${idx}, this.value)" class="w-7 text-center font-bold bg-white border border-[#D5D0C5] rounded p-0.5 text-[10px]">
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-stone-400">งบ:</span>
+            <input type="number" step="100" value="${bill.amount}" onchange="updateFixedBillAmount(${idx}, this.value)" class="w-24 text-right font-bold text-stone-800 bg-white border border-[#D5D0C5] rounded-lg p-1">
+            <button onclick="deleteFixedBill(${idx})" class="text-stone-300 hover:text-rose-500 p-1 font-bold" title="ลบบิลนี้">✕</button>
+          </div>
+        `;
+        bList.appendChild(div);
+      });
+    }
+
+    function promptAddNewVariableBudget() {
+      const name = prompt('ระบุชื่อหมวดงบประมาณใหม่ (เช่น อาหารแมว, ช้อปปิ้ง):');
+      if (!name) return;
+      const budget = parseFloat(prompt('ระบุจำนวนงบประมาณต่อเดือน (บาท):', '1000')) || 0;
+      const icon = prompt('ระบุอิโมจิไอคอน (เช่น 🐱, 🛍️):', '🐱') || '🛒';
+
+      const cur = localData[currentYM];
+      if (!cur.variableBudgets) cur.variableBudgets = getDefaultVariableBudgets();
+
+      cur.variableBudgets.push({
+        id: 'cust_v_' + Date.now(),
+        name: name,
+        budget: budget,
+        icon: icon
+      });
+
+      saveData();
+      renderAll();
+    }
+
+    function updateVariableBudgetName(idx, val) {
+      localData[currentYM].variableBudgets[idx].name = val;
+      saveData();
+      renderAll();
+    }
+
+    function updateVariableBudgetIcon(idx, val) {
+      localData[currentYM].variableBudgets[idx].icon = val;
+      saveData();
+      renderAll();
+    }
+
+    function updateVariableBudgetAmount(idx, val) {
+      localData[currentYM].variableBudgets[idx].budget = parseFloat(val) || 0;
+      saveData();
+      renderAll();
+    }
+
+    function deleteVariableBudget(idx) {
+      if (confirm('ต้องการลบหมวดงบประมาณนี้ใช่หรือไม่?')) {
+        localData[currentYM].variableBudgets.splice(idx, 1);
+        saveData();
+        renderAll();
+      }
+    }
+
+    function promptAddNewFixedBill() {
+      const title = prompt('ระบุชื่อบิลใหม่ (เช่น ค่าวัคซีนแมว, ค่าประกัน):');
+      if (!title) return;
+      const amount = parseFloat(prompt('ระบุยอดงบประมาณ (บาท):', '1000')) || 0;
+      const dueDate = prompt('ระบุวันที่กำหนดชำระ (เช่น 1, 5, 25):', '5') || '5';
+
+      const cur = localData[currentYM];
+      if (!cur.fixedBills) cur.fixedBills = getDefaultFixedBills(currentYM);
+
+      cur.fixedBills.push({
+        id: 'cust_b_' + Date.now(),
+        title: title,
+        amount: amount,
+        dueDate: dueDate,
+        paid: false,
+        paidDate: '',
+        manualPayer: '',
+        actualAmount: 0
+      });
+
+      saveData();
+      renderAll();
+    }
+
+    function updateFixedBillTitle(idx, val) {
+      localData[currentYM].fixedBills[idx].title = val;
+      saveData();
+      renderAll();
+    }
+
+    function updateFixedBillDueDate(idx, val) {
+      localData[currentYM].fixedBills[idx].dueDate = val;
+      saveData();
+      renderAll();
+    }
+
+    function updateFixedBillAmount(idx, val) {
+      localData[currentYM].fixedBills[idx].amount = parseFloat(val) || 0;
+      saveData();
+      renderAll();
+    }
+
+    function deleteFixedBill(idx) {
+      if (confirm('ต้องการลบบิลนี้ออกจากแผนใช่หรือไม่?')) {
+        localData[currentYM].fixedBills.splice(idx, 1);
+        saveData();
+        renderAll();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('family_budget_sage_oat_v1', JSON.stringify(localData));
+      if (dbRef) {
+        dbRef.child(currentYM).set(localData[currentYM]);
+      }
+    }
+
+    function renderAll() {
+      ensureData(currentYM);
+      const cur = localData[currentYM];
+      const txs = cur.transactions || [];
+      const bills = cur.fixedBills || [];
+      const vBudgets = cur.variableBudgets || getDefaultVariableBudgets();
+
+      const txList = document.getElementById('dailyTxList');
+      txList.innerHTML = '';
+
+      let toonIncome = 0;
+      let aomIncome = 0;
+      let toonTotalExpense = 0;
+      let aomTotalExpense = 0;
+
+      const categoryExpenseTotals = {};
+      const billPaymentTracker = {};
+
+      txs.forEach(t => {
+        const isToon = t.payer === 'toon';
+
+        if (t.type === 'income') {
+          if (isToon) toonIncome += t.amount;
+          else aomIncome += t.amount;
+        } else {
+          if (isToon) toonTotalExpense += t.amount;
+          else aomTotalExpense += t.amount;
+
+          categoryExpenseTotals[t.categoryId] = (categoryExpenseTotals[t.categoryId] || 0) + t.amount;
+
+          if (t.linkedBillId) {
+            if (!billPaymentTracker[t.linkedBillId]) {
+              billPaymentTracker[t.linkedBillId] = { toonPaid: 0, aomPaid: 0, lastDate: t.date };
+            }
+            if (isToon) billPaymentTracker[t.linkedBillId].toonPaid += t.amount;
+            else billPaymentTracker[t.linkedBillId].aomPaid += t.amount;
+            billPaymentTracker[t.linkedBillId].lastDate = t.date;
+          }
+        }
+      });
+
+      document.getElementById('quickTxCount').innerText = `📝 รวมบันทึก ${txs.length} รายการ`;
+
+      if (txs.length === 0) {
+        txList.innerHTML = `
+          <div class="text-center py-8 text-stone-400 text-xs">
+            ✨ ยังไม่มีรายการบันทึกของเดือนนี้ กดปุ่ม "+ บันทึกรายการใหม่" ด้านบนได้เลย!
+          </div>
+        `;
+      } else {
+        txs.forEach(t => {
+          const isInc = t.type === 'income';
+          const isToon = t.payer === 'toon';
+
+          const div = document.createElement('div');
+          div.className = 'p-3 flex items-center justify-between hover:bg-[#F9F8F5] transition-all';
+          div.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-xl flex items-center justify-center text-sm ${isInc ? 'bg-emerald-100 text-emerald-800' : 'bg-[#FBF0EC] text-[#C86D51]'}">
+                ${t.icon || (isInc ? '💰' : '💸')}
+              </span>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold text-xs text-stone-800">${t.categoryName}</span>
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-full ${isToon ? 'bg-[#E8F0EC] text-[#1F332A]' : 'bg-[#FBF0EC] text-[#4E2A20]'}">
+                    ${isToon ? '🧔 ตูน' : '👩 อ้อม'}
+                  </span>
+                  ${t.linkedBillId ? '<span class="text-[9px] font-bold bg-[#FAF3EC] text-[#2E4A3E] border border-[#DDD3C5] px-1 rounded">🔗 บิล</span>' : ''}
+                </div>
+                <div class="text-[10px] text-stone-400 flex items-center gap-2 mt-0.5">
+                  <span>🗓️ ${t.date}</span>
+                  ${t.note ? `<span class="text-[#2E4A3E] font-medium">• ${t.note}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold font-heading text-xs md:text-sm ${isInc ? 'text-emerald-700' : 'text-[#C86D51]'}">
+                ${isInc ? '+' : '-'}฿${t.amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}
+              </span>
+              <button onclick="deleteTransaction('${t.id}')" class="text-stone-300 hover:text-rose-500 text-xs p-1" title="ลบรายการ">✕</button>
+            </div>
+          `;
+          txList.appendChild(div);
+        });
+      }
+
+      // 2. คำนวณตารางบิลที่ต้องชำระ
+      let fixedBudgetTotal = 0;
+      const billsTable = document.getElementById('fixedBillsTableBody');
+      billsTable.innerHTML = '';
+
+      bills.forEach(b => {
+        fixedBudgetTotal += b.amount;
+
+        const tracker = billPaymentTracker[b.id];
+        let toonPaid = 0;
+        let aomPaid = 0;
+        let totalPaidOnBill = 0;
+        let lastPaidDate = b.paidDate;
+
+        if (tracker) {
+          toonPaid = tracker.toonPaid;
+          aomPaid = tracker.aomPaid;
+          totalPaidOnBill = toonPaid + aomPaid;
+          lastPaidDate = tracker.lastDate;
+          b.hasLinkedTx = true;
+        } else {
+          b.hasLinkedTx = false;
+          if (b.paid) {
+            totalPaidOnBill = b.actualAmount > 0 ? b.actualAmount : b.amount;
+            if (b.manualPayer === 'aom') aomPaid = totalPaidOnBill;
+            else toonPaid = totalPaidOnBill;
+
+            if (b.manualPayer === 'aom') aomTotalExpense += totalPaidOnBill;
+            else toonTotalExpense += totalPaidOnBill;
+          }
+        }
+
+        let payerBadgeHtml = '';
+        let paymentBreakdownText = '';
+
+        if (totalPaidOnBill > 0) {
+          if (toonPaid > 0 && aomPaid > 0) {
+            payerBadgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8DECE] text-[#3E3125] border border-[#D5C9B5]">🤝 ช่วยกันออก</span>`;
+            paymentBreakdownText = `<span class="text-[9px] text-[#2E4A3E] block mt-0.5 font-medium">(อ้อม ฿${aomPaid.toLocaleString()} + ตูน ฿${toonPaid.toLocaleString()})</span>`;
+          } else if (toonPaid > 0) {
+            payerBadgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F0EC] text-[#1F332A] border border-[#BED7CA]">🧔 ตูนชำระ</span>`;
+          } else if (aomPaid > 0) {
+            payerBadgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FBF0EC] text-[#4E2A20] border border-[#ECC1B5]">👩 อ้อมชำระ</span>`;
+          }
+        } else {
+          payerBadgeHtml = `<span class="text-stone-400 font-bold text-sm">-</span>`;
+        }
+
+        let statusButtonHtml = '';
+        let actualAmountColumnHtml = '';
+
+        if (totalPaidOnBill > 0) {
+          let dateStr = '';
+          if (lastPaidDate) {
+            const parts = lastPaidDate.split('-');
+            dateStr = `(${parseInt(parts[2])} ${['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][parseInt(parts[1])-1]})`;
+          }
+
+          const diff = b.amount - totalPaidOnBill;
+          let diffBadge = '';
+          if (diff > 0) {
+            diffBadge = `<span class="text-[9px] text-[#2E6B4E] font-semibold block">ประหยัด ฿${diff.toLocaleString()}</span>`;
+          } else if (diff < 0) {
+            diffBadge = `<span class="text-[9px] text-[#C86D51] font-semibold block">เกินงบ ฿${Math.abs(diff).toLocaleString()}</span>`;
+          }
+
+          statusButtonHtml = `
+            <button onclick="openBillPayModal('${b.id}')" class="px-2 py-1 rounded-md text-[10px] font-bold bg-[#EAF2ED] text-[#266046] border border-[#C5DDCF] hover:bg-[#D8E9DF] transition-all">
+              ✓ ชำระแล้ว ${dateStr}
+            </button>
+          `;
+
+          actualAmountColumnHtml = `
+            <div class="text-right">
+              <span class="font-bold text-[#2E6B4E] text-xs">฿${totalPaidOnBill.toLocaleString('th-TH', {minimumFractionDigits: 2})}</span>
+              ${diffBadge}
+            </div>
+          `;
+        } else {
+          statusButtonHtml = `
+            <button onclick="openBillPayModal('${b.id}')" class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#F7F6F2] text-stone-600 border border-[#D5D0C5] hover:bg-[#EAE7E0] transition-all">
+              ⏳ รอชำระ
+            </button>
+          `;
+          actualAmountColumnHtml = `<span class="text-stone-400 text-center block">-</span>`;
+        }
+
+        const isFullyPaid = totalPaidOnBill > 0;
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-[#F9F8F5] ${isFullyPaid ? 'bg-white/80' : 'bg-white'}`;
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 text-center">
+            <span class="bg-[#F2EFE9] text-[#26332C] font-bold px-1.5 py-0.5 rounded text-[10px] border border-[#D5D0C5]">
+              ทุกวันที่ ${b.dueDate}
+            </span>
+          </td>
+          <td class="py-2.5 px-3">
+            <div class="font-semibold text-stone-800 ${isFullyPaid ? 'line-through text-stone-400' : ''}">${b.title}</div>
+            ${b.note ? `<span class="text-[9px] text-[#2E4A3E] font-medium">${b.note}</span>` : ''}
+            ${paymentBreakdownText}
+          </td>
+          <td class="py-2.5 px-3 text-center">
+            ${payerBadgeHtml}
+          </td>
+          <td class="py-2.5 px-3 text-right font-medium text-stone-500">
+            ฿${b.amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}
+          </td>
+          <td class="py-2.5 px-3">
+            ${actualAmountColumnHtml}
+          </td>
+          <td class="py-2.5 px-3 text-center">
+            ${statusButtonHtml}
+          </td>
+        `;
+        billsTable.appendChild(tr);
+      });
+
+      document.getElementById('fixedBillsTotalBadge').innerText = `งบรวม: ฿${fixedBudgetTotal.toLocaleString('th-TH')}`;
+
+      // 3. แดชบอร์ดติดตามงบรายวัน (Variable Budgets Tracker)
+      const trackerContainer = document.getElementById('budgetTrackerContainer');
+      trackerContainer.innerHTML = '';
+
+      vBudgets.forEach(cfg => {
+        const actualSpent = categoryExpenseTotals[cfg.id] || 0;
+        const diff = cfg.budget - actualSpent;
+        const percent = cfg.budget > 0 ? Math.min(100, (actualSpent / cfg.budget) * 100) : 0;
+
+        let statusText = '';
+        let barColor = 'bg-[#2E6B4E]';
+
+        if (cfg.budget > 0) {
+          if (diff >= 0) {
+            statusText = `<span class="text-[#2E6B4E] font-medium">เหลืองบ ฿${diff.toLocaleString('th-TH')}</span>`;
+          } else {
+            statusText = `<span class="text-[#C86D51] font-bold">⚠️ เกินงบ ฿${Math.abs(diff).toLocaleString('th-TH')}</span>`;
+            barColor = 'bg-[#C86D51]';
+          }
+        }
+
+        const div = document.createElement('div');
+        div.className = 'bg-[#F9F8F5] p-3 rounded-xl border border-[#E7E4DC] space-y-1.5';
+        div.innerHTML = `
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-stone-800 flex items-center gap-1.5">
+              <span>${cfg.icon || '🛒'}</span> ${cfg.name}
+            </span>
+            <div class="text-right">
+              <span class="font-bold text-stone-900">ใช้จริง ฿${actualSpent.toLocaleString('th-TH')}</span>
+              ${cfg.budget > 0 ? `<span class="text-stone-400 text-[10px]"> / งบ ฿${cfg.budget.toLocaleString('th-TH')}</span>` : ''}
+            </div>
+          </div>
+
+          ${cfg.budget > 0 ? `
+            <div class="w-full bg-[#E5E0D5] rounded-full h-1.5 overflow-hidden">
+              <div class="${barColor} h-full rounded-full transition-all" style="width: ${percent}%"></div>
+            </div>
+            <div class="flex justify-between text-[10px]">
+              <span class="text-stone-400">ใช้ไปแล้ว ${percent.toFixed(0)}%</span>
+              ${statusText}
+            </div>
+          ` : ''}
+        `;
+        trackerContainer.appendChild(div);
+      });
+
+      // 4. สรุปแยกกระเป๋า (ตูน vs อ้อม)
+      const toonBalance = toonIncome - toonTotalExpense;
+      const aomBalance = aomIncome - aomTotalExpense;
+
+      // กระเป๋าตูน
+      document.getElementById('walletToonIncome').innerText = `฿${toonIncome.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      document.getElementById('walletToonExpense').innerText = `฿${toonTotalExpense.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      document.getElementById('walletToonBalance').innerText = `${toonBalance >= 0 ? '+' : '-'}฿${Math.abs(toonBalance).toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      
+      const toonBox = document.getElementById('walletToonBalanceBox');
+      const toonSub = document.getElementById('walletToonStatusSub');
+      if (toonBalance >= 0) {
+        toonBox.className = 'p-3 rounded-xl flex justify-between items-center bg-[#E8F0EC] text-[#1F332A] border border-[#BED7CA]';
+        toonSub.innerText = 'มีเงินเหลือพร้อมหมุนเวียน';
+      } else {
+        toonBox.className = 'p-3 rounded-xl flex justify-between items-center bg-[#FBF0EC] text-[#4E2A20] border border-[#ECC1B5]';
+        toonSub.innerText = '⚠️ เงินหมด/ติดลบ ให้อ้อมช่วยจ่าย';
+      }
+
+      // กระเป๋าอ้อม
+      document.getElementById('walletAomIncome').innerText = `฿${aomIncome.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      document.getElementById('walletAomExpense').innerText = `฿${aomTotalExpense.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      document.getElementById('walletAomBalance').innerText = `${aomBalance >= 0 ? '+' : '-'}฿${Math.abs(aomBalance).toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+
+      const aomBox = document.getElementById('walletAomBalanceBox');
+      const aomSub = document.getElementById('walletAomStatusSub');
+      if (aomBalance >= 0) {
+        aomBox.className = 'p-3 rounded-xl flex justify-between items-center bg-[#FBF0EC] text-[#4E2A20] border border-[#ECC1B5]';
+        aomSub.innerText = 'มีเงินเหลือพร้อมหมุนเวียน';
+      } else {
+        aomBox.className = 'p-3 rounded-xl flex justify-between items-center bg-[#FBF0EC] text-[#4E2A20] border border-[#ECC1B5]';
+        aomSub.innerText = '⚠️ เงินหมด/ติดลบ ให้ตูนช่วยจ่าย';
+      }
+
+      // แถบแจ้งเตือนช่วยเหลือกัน
+      const alertBanner = document.getElementById('walletAlertBanner');
+      if (toonBalance < 0 && aomBalance >= 0) {
+        alertBanner.classList.remove('hidden');
+        alertBanner.className = 'rounded-2xl p-3.5 text-xs flex items-center justify-between bg-[#FBF0EC] border border-[#ECC1B5] text-[#A64C33] shadow-2xs';
+        alertBanner.innerHTML = `
+          <span>🧔 <strong>เงินตูนหมดแล้ว:</strong> อ้อมช่วยรับช่วงจ่ายบิลที่เหลือแทนนะ</span>
+          <button onclick="switchTab('bills')" class="px-2.5 py-1 bg-[#E8DECE] text-[#24352D] font-bold rounded-lg text-[11px] hover:bg-[#DDD1BE]">ไปดูบิลที่ค้าง</button>
+        `;
+      } else if (aomBalance < 0 && toonBalance >= 0) {
+        alertBanner.classList.remove('hidden');
+        alertBanner.className = 'rounded-2xl p-3.5 text-xs flex items-center justify-between bg-[#FBF0EC] border border-[#ECC1B5] text-[#A64C33] shadow-2xs';
+        alertBanner.innerHTML = `
+          <span>👩 <strong>เงินอ้อมหมดแล้ว:</strong> ตูนช่วยรับช่วงจ่ายบิลที่เหลือแทนนะ</span>
+          <button onclick="switchTab('bills')" class="px-2.5 py-1 bg-[#E8DECE] text-[#24352D] font-bold rounded-lg text-[11px] hover:bg-[#DDD1BE]">ไปดูบิลที่ค้าง</button>
+        `;
+      } else {
+        alertBanner.classList.add('hidden');
+      }
+
+      // ยอดรวมทั้งบ้าน
+      const grandIncome = toonIncome + aomIncome;
+      const grandExpense = toonTotalExpense + aomTotalExpense;
+      const grandNet = grandIncome - grandExpense;
+
+      document.getElementById('dashTotalIncome').innerText = `฿${grandIncome.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      document.getElementById('dashTotalExpense').innerText = `฿${grandExpense.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      document.getElementById('dashTotalNet').innerText = `${grandNet >= 0 ? '+' : '-'}฿${Math.abs(grandNet).toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+
+      // เรนเดอร์หน้าตั้งค่าแผนงบประมาณ (Tab 4)
+      renderMasterPlanSettings();
+    }
+
+    function toggleConfigModal() {
+      document.getElementById('configModal').classList.toggle('hidden');
+    }
+
+    function saveFirebaseConfig() {
+      const url = document.getElementById('firebaseUrlInput').value.trim();
+      if (url) {
+        localStorage.setItem('family_budget_fb_url', url);
+        initFirebase(url);
+        toggleConfigModal();
+      }
+    }
+
+    function initFirebase(databaseURL) {
+      try {
+        if (!firebase.apps.length) {
+          firebase.initializeApp({ databaseURL: databaseURL });
+        }
+        dbRef = firebase.database().ref('family_budget_sage_oat');
+
+        dbRef.on('value', (snapshot) => {
+          const val = snapshot.val();
+          if (val) {
+            localData = val;
+            localStorage.setItem('family_budget_sage_oat_v1', JSON.stringify(localData));
+            renderAll();
+          }
+        });
+
+        document.getElementById('syncBadge').className = 'inline-flex items-center gap-1 text-[11px] bg-[#EAF2ED] text-[#266046] px-2 py-0.5 rounded-md border border-[#C5DDCF] font-medium';
+        document.getElementById('syncBadge').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-[#266046]"></span> ซิงค์ 2 เครื่อง';
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    window.onload = () => {
+      initMonthSelector();
+      ensureData(currentYM);
+      renderAll();
+
+      const savedUrl = localStorage.getItem('family_budget_fb_url');
+      if (savedUrl) {
+        document.getElementById('firebaseUrlInput').value = savedUrl;
+        initFirebase(savedUrl);
+      }
+    };
+  </script>
+</body>
+</html>
