@@ -423,7 +423,7 @@
     let currentTxPayer = 'toon';
     let currentBpmPayer = 'toon';
     let dbRef = null;
-    let localData = JSON.parse(localStorage.getItem('family_budget_github_safe_v1') || '{}');
+    let localData = JSON.parse(localStorage.getItem('family_budget_sage_oat_v1') || '{}');
     let activeBillId = null;
 
     function switchTab(tabId) {
@@ -720,7 +720,7 @@
     }
 
     function saveData() {
-      localStorage.setItem('family_budget_github_safe_v1', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sage_oat_v1', JSON.stringify(localData));
       if (dbRef) {
         dbRef.child(currentYM).set(localData[currentYM]).catch(err => console.log('Firebase sync error:', err));
       }
@@ -731,7 +731,7 @@
     }
 
     function saveFirebaseConfig() {
-      const url = document.getElementById('firebaseUrlInput').value.trim();
+      const url = document.getElementById('firebaseUrlInput'].value.trim();
       if (url) {
         localStorage.setItem('family_budget_fb_url', url);
         initFirebase(url);
@@ -751,12 +751,13 @@
         if (!firebase.apps.length) {
           firebase.initializeApp({ databaseURL: databaseURL });
         }
-        dbRef = firebase.database().ref('family_budget_github_safe');
+        // 🔥 แก้ไขชื่อกิ่งฐานข้อมูลให้ตรงกับ family_budget_sage_oat ที่เชื่อมไว้
+        dbRef = firebase.database().ref('family_budget_sage_oat');
         dbRef.on('value', (snapshot) => {
           const val = snapshot.val();
           if (val) {
             localData[currentYM] = val;
-            localStorage.setItem('family_budget_github_safe_v1', JSON.stringify(localData));
+            localStorage.setItem('family_budget_sage_oat_v1', JSON.stringify(localData));
             renderAll();
           }
         });
@@ -765,122 +766,6 @@
       } catch (err) {
         console.error(err);
       }
-    }
-
-    function renderAll() {
-      ensureData(currentYM);
-      const cur = localData[currentYM];
-      const txs = cur.transactions || [];
-      const bills = cur.fixedBills || [];
-      const vBudgets = cur.variableBudgets || getDefaultVariableBudgets();
-
-      const txList = document.getElementById('dailyTxList');
-      txList.innerHTML = '';
-
-      let toonIncome = 0, aomIncome = 0, toonTotalExpense = 0, aomTotalExpense = 0;
-      const categoryExpenseTotals = {};
-      const billPaymentTracker = {};
-
-      txs.forEach(t => {
-        const isToon = t.payer === 'toon';
-        if (t.type === 'income') {
-          if (isToon) toonIncome += t.amount; else aomIncome += t.amount;
-        } else {
-          if (isToon) toonTotalExpense += t.amount; else aomTotalExpense += t.amount;
-          categoryExpenseTotals[t.categoryId] = (categoryExpenseTotals[t.categoryId] || 0) + t.amount;
-          if (t.linkedBillId) {
-            if (!billPaymentTracker[t.linkedBillId]) billPaymentTracker[t.linkedBillId] = { toonPaid: 0, aomPaid: 0, lastDate: t.date };
-            if (isToon) billPaymentTracker[t.linkedBillId].toonPaid += t.amount; else billPaymentTracker[t.linkedBillId].aomPaid += t.amount;
-            billPaymentTracker[t.linkedBillId].lastDate = t.date;
-          }
-        }
-      });
-
-      document.getElementById('quickTxCount').innerText = `📝 รวมบันทึก ${txs.length} รายการ`;
-      if (txs.length === 0) {
-        txList.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">✨ ยังไม่มีรายการบันทึกของเดือนนี้ กดปุ่ม "+ บันทึกรายการใหม่" ด้านบนได้เลย!</div>`;
-      } else {
-        txs.forEach(t => {
-          const isInc = t.type === 'income';
-          const isToon = t.payer === 'toon';
-          const div = document.createElement('div');
-          div.className = 'p-3 flex items-center justify-between hover:bg-[#F6F5F1] transition-all';
-          div.innerHTML = `<div class="flex items-center gap-3"><span class="w-8 h-8 rounded-xl flex items-center justify-center text-sm ${isInc ? 'bg-[#EEF5F1] text-[#2D6A4F]' : 'bg-[#FBF0ED] text-[#C86A58]'}">${t.icon || '💸'}</span><div><div class="flex items-center gap-1.5"><span class="font-bold text-xs text-slate-800">${t.categoryName}</span><span class="text-[9px] font-bold px-1.5 py-0.2 rounded-full ${isToon ? 'bg-[#E8F2F2] text-[#1C3636]' : 'bg-[#FBF0ED] text-[#4E241C]'}">${isToon ? '🧔 ตูน' : '👩 อ้อม'}</span></div><div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5"><span>🗓️ ${t.date}</span>${t.note ? `<span class="text-[#2C3539] font-medium">• ${t.note}</span>` : ''}</div></div></div><div class="flex items-center gap-2"><span class="font-bold text-xs md:text-sm ${isInc ? 'text-[#2D6A4F]' : 'text-[#C86A58]'}">${isInc ? '+' : '-'}฿${t.amount.toLocaleString()}</span><button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 text-xs p-1">✕</button></div>`;
-          txList.appendChild(div);
-        });
-      }
-
-      let fixedBudgetTotal = 0;
-      const billsTable = document.getElementById('fixedBillsTableBody');
-      billsTable.innerHTML = '';
-
-      bills.forEach(b => {
-        fixedBudgetTotal += b.amount;
-        const tracker = billPaymentTracker[b.id];
-        let toonPaid = 0, aomPaid = 0, totalPaidOnBill = 0, lastPaidDate = b.paidDate;
-
-        if (tracker) {
-          toonPaid = tracker.toonPaid; aomPaid = tracker.aomPaid;
-          totalPaidOnBill = toonPaid + aomPaid; lastPaidDate = tracker.lastDate; b.hasLinkedTx = true;
-        } else {
-          b.hasLinkedTx = false;
-          if (b.paid) {
-            totalPaidOnBill = b.actualAmount > 0 ? b.actualAmount : b.amount;
-            if (b.manualPayer === 'aom') aomPaid = totalPaidOnBill; else toonPaid = totalPaidOnBill;
-            if (b.manualPayer === 'aom') aomTotalExpense += totalPaidOnBill; else toonTotalExpense += totalPaidOnBill;
-          }
-        }
-
-        let payerBadgeHtml = '<span class="text-slate-400 font-bold text-sm">-</span>';
-        let paymentBreakdownText = '';
-        if (totalPaidOnBill > 0) {
-          if (toonPaid > 0 && aomPaid > 0) {
-            payerBadgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F5E6CC] text-[#6B4716] border">🤝 ช่วยกันออก</span>`;
-            paymentBreakdownText = `<span class="text-[9px] text-[#2C3539] block mt-0.5 font-medium">(อ้อม ฿${aomPaid.toLocaleString()} + ตูน ฿${toonPaid.toLocaleString()})</span>`;
-          } else if (toonPaid > 0) {
-            payerBadgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8F2F2] text-[#1C3636] border">🧔 ตูนชำระ</span>`;
-          } else if (aomPaid > 0) {
-            payerBadgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FBF0ED] text-[#4E241C] border">👩 อ้อมชำระ</span>`;
-          }
-        }
-
-        let statusButtonHtml = totalPaidOnBill > 0 ? `<button onclick="openBillPayModal('${b.id}')" class="px-2 py-1 rounded-md text-[10px] font-bold bg-[#EEF5F1] text-[#2D6A4F] border">✓ ชำระแล้ว</button>` : `<button onclick="openBillPayModal('${b.id}')" class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#F6F5F1] text-slate-600 border">⏳ รอชำระ</button>`;
-        let actualAmountColumnHtml = totalPaidOnBill > 0 ? `<div class="text-right"><span class="font-bold text-[#2D6A4F] text-xs">฿${totalPaidOnBill.toLocaleString()}</span></div>` : `<span class="text-slate-400 text-center block">-</span>`;
-
-        const tr = document.createElement('tr');
-        tr.className = `hover:bg-[#F6F5F1] ${totalPaidOnBill > 0 ? 'bg-white/80' : 'bg-white'}`;
-        tr.innerHTML = `<td class="py-2.5 px-3 text-center"><span class="bg-[#F0EFEA] font-bold px-1.5 py-0.5 rounded text-[10px] border">ทุกวันที่ ${b.dueDate}</span></td><td class="py-2.5 px-3"><div class="font-semibold text-slate-800">${b.title}</div>${b.note ? `<span class="text-[9px] text-[#2C3539]">${b.note}</span>` : ''}${paymentBreakdownText}</td><td class="py-2.5 px-3 text-center">${payerBadgeHtml}</td><td class="py-2.5 px-3 text-right font-medium text-slate-500">฿${b.amount.toLocaleString()}</td><td class="py-2.5 px-3">${actualAmountColumnHtml}</td><td class="py-2.5 px-3 text-center">${statusButtonHtml}</td>`;
-        billsTable.appendChild(tr);
-      });
-
-      document.getElementById('fixedBillsTotalBadge').innerText = `งบรวม: ฿${fixedBudgetTotal.toLocaleString()}`;
-
-      const trackerContainer = document.getElementById('budgetTrackerContainer');
-      trackerContainer.innerHTML = '';
-      vBudgets.forEach(cfg => {
-        const actualSpent = categoryExpenseTotals[cfg.id] || 0;
-        const diff = cfg.budget - actualSpent;
-        const percent = cfg.budget > 0 ? Math.min(100, (actualSpent / cfg.budget) * 100) : 0;
-        const div = document.createElement('div');
-        div.className = 'bg-[#F6F5F1] p-3 rounded-xl border space-y-1.5 text-xs';
-        div.innerHTML = `<div class="flex justify-between items-center"><span class="font-bold text-slate-800"><span>${cfg.icon || '🛒'}</span> ${cfg.name}</span><div class="text-right"><span class="font-bold text-slate-900">ใช้จริง ฿${actualSpent.toLocaleString()}</span>${cfg.budget > 0 ? `<span class="text-slate-400 text-[10px]"> / งบ ฿${cfg.budget.toLocaleString()}</span>` : ''}</div></div>${cfg.budget > 0 ? `<div class="w-full bg-[#E5E2D9] rounded-full h-1.5 overflow-hidden"><div class="bg-[#2D6A4F] h-full rounded-full" style="width: ${percent}%"></div></div>` : ''}`;
-        trackerContainer.appendChild(div);
-      });
-
-      const toonBal = toonIncome - toonTotalExpense;
-      const aomBal = aomIncome - aomTotalExpense;
-      document.getElementById('walletToonIncome').innerText = `฿${toonIncome.toLocaleString()}`;
-      document.getElementById('walletToonExpense').innerText = `฿${toonTotalExpense.toLocaleString()}`;
-      document.getElementById('walletToonBalance').innerText = `${toonBal >= 0 ? '+' : '-'}฿${Math.abs(toonBal).toLocaleString()}`;
-      document.getElementById('walletAomIncome').innerText = `฿${aomIncome.toLocaleString()}`;
-      document.getElementById('walletAomExpense').innerText = `฿${aomTotalExpense.toLocaleString()}`;
-      document.getElementById('walletAomBalance').innerText = `${aomBal >= 0 ? '+' : '-'}฿${Math.abs(aomBal).toLocaleString()}`;
-
-      document.getElementById('dashTotalIncome').innerText = `฿${(toonIncome + aomIncome).toLocaleString()}`;
-      document.getElementById('dashTotalExpense').innerText = `฿${(toonTotalExpense + aomTotalExpense).toLocaleString()}`;
-      document.getElementById('dashTotalNet').innerText = `${(toonBal + aomBal) >= 0 ? '+' : '-'}฿${Math.abs(toonBal + aomBal).toLocaleString()}`;
-
-      renderMasterPlanSettings();
     }
 
     window.onload = () => {
