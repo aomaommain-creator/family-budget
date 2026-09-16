@@ -751,12 +751,12 @@
         if (!firebase.apps.length) {
           firebase.initializeApp({ databaseURL: databaseURL });
         }
-        // 🔥 แก้ไขชื่อกิ่งฐานข้อมูลให้ตรงกับ family_budget_sage_oat ที่เชื่อมไว้
         dbRef = firebase.database().ref('family_budget_sage_oat');
         dbRef.on('value', (snapshot) => {
           const val = snapshot.val();
           if (val) {
-            localData[currentYM] = val;
+            // แก้ไขจุดนี้ให้รับค่าข้อมูลทั้งหมดทุกเดือนเข้ามาเก็บใน localData ตรงๆ
+            localData = val;
             localStorage.setItem('family_budget_sage_oat_v1', JSON.stringify(localData));
             renderAll();
           }
