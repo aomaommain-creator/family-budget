@@ -262,7 +262,7 @@
     let currentYM = '2026-10';
     let currentTxType = 'expense';
     let currentTxPayer = 'toon';
-    let localData = JSON.parse(localStorage.getItem('family_budget_sheets_live_v3') || '{}');
+    let localData = JSON.parse(localStorage.getItem('family_budget_sheets_live_v4') || '{}');
 
     function switchTab(tabId) {
       ['daily', 'dashboard', 'bills', 'accounts'].forEach(t => {
@@ -319,7 +319,7 @@
           ensureData(currentYM);
           if (Array.isArray(data)) {
             localData[currentYM].transactions = data;
-            localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData));
+            localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
             renderAll();
           }
         })
@@ -447,7 +447,7 @@
       };
 
       localData[ym].transactions.unshift(newTx);
-      localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
 
       if (SCRIPT_URL) {
         fetch(SCRIPT_URL, {
@@ -465,14 +465,26 @@
       alert('บันทึกข้อมูลและส่งเข้า Google Sheets เรียบร้อย!');
     }
 
+    // ฟังก์ชันลบรายการ (รองรับการลบออกจาก Google Sheet ด้วย)
     function deleteTransaction(txId) {
       if (confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) {
         const txs = localData[currentYM].transactions;
         const idx = txs.findIndex(t => t.id === txId);
         if (idx > -1) {
           txs.splice(idx, 1);
-          localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData));
+          localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
           renderAll();
+
+          if (SCRIPT_URL) {
+            fetch(SCRIPT_URL, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: "delete", id: txId, month: currentYM })
+            }).then(() => {
+              setTimeout(fetchDataFromSheet, 1500);
+            }).catch(err => console.log('Google Sheet delete error:', err));
+          }
         }
       }
     }
@@ -505,13 +517,12 @@
 
     function closePersonDetailsModal() { document.getElementById('personDetailsModal').classList.add('hidden'); }
 
-    // ฟังก์ชันจัดการเพิ่ม/ลบ ในหน้าตั้งค่าแผนงบ
     function promptAddNewIncomeConfig() {
       const name = prompt('ชื่อรายการรายรับใหม่:');
       if (!name) return;
       ensureData(currentYM);
       localData[currentYM].incomeConfigs.push({ id: 'inc_' + Date.now(), name, icon: '💵' });
-      localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
       renderMasterPlanSettings();
     }
 
@@ -521,7 +532,7 @@
       const budget = parseFloat(prompt('งบประมาณ (บาท):', '1000')) || 0;
       ensureData(currentYM);
       localData[currentYM].variableBudgets.push({ id: 'v_' + Date.now(), name, budget, icon: '🏷️' });
-      localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
       renderMasterPlanSettings();
       renderAll();
     }
@@ -533,7 +544,7 @@
       const dueDate = prompt('วันกำหนดจ่าย (เช่น 5, 25):', '1') || '1';
       ensureData(currentYM);
       localData[currentYM].fixedBills.push({ id: 'b_' + Date.now(), title, amount, dueDate });
-      localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
       renderMasterPlanSettings();
       renderAll();
     }
@@ -542,31 +553,28 @@
       ensureData(currentYM);
       const cur = localData[currentYM];
 
-      // รายรับ
       const iList = document.getElementById('planIncomeConfigList');
       if (iList) {
         iList.innerHTML = '';
         (cur.incomeConfigs || []).forEach((cfg, idx) => {
           const div = document.createElement('div');
           div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F6F5F1] border text-xs';
-          div.innerHTML = `<input type="text" value="${cfg.icon || '💵'}" onchange="localData[currentYM].incomeConfigs[${idx}].icon=this.value; localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData));" class="w-8 text-center bg-white border rounded p-1"><input type="text" value="${cfg.name}" onchange="localData[currentYM].incomeConfigs[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData));" class="font-semibold bg-transparent border-b flex-1 px-1"><button onclick="localData[currentYM].incomeConfigs.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData)); renderMasterPlanSettings();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
+          div.innerHTML = `<input type="text" value="${cfg.icon || '💵'}" onchange="localData[currentYM].incomeConfigs[${idx}].icon=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));" class="w-8 text-center bg-white border rounded p-1"><input type="text" value="${cfg.name}" onchange="localData[currentYM].incomeConfigs[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));" class="font-semibold bg-transparent border-b flex-1 px-1"><button onclick="localData[currentYM].incomeConfigs.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderMasterPlanSettings();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
           iList.appendChild(div);
         });
       }
 
-      // งบผันแปร
       const vList = document.getElementById('planVariableBudgetList');
       if (vList) {
         vList.innerHTML = '';
         (cur.variableBudgets || []).forEach((cfg, idx) => {
           const div = document.createElement('div');
           div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F6F5F1] border text-xs';
-          div.innerHTML = `<span class="w-8 text-center">${cfg.icon || '🛒'}</span><input type="text" value="${cfg.name}" onchange="localData[currentYM].variableBudgets[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1 px-1"><input type="number" value="${cfg.budget}" onchange="localData[currentYM].variableBudgets[${idx}].budget=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1"><button onclick="localData[currentYM].variableBudgets.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
+          div.innerHTML = `<span class="w-8 text-center">${cfg.icon || '🛒'}</span><input type="text" value="${cfg.name}" onchange="localData[currentYM].variableBudgets[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1 px-1"><input type="number" value="${cfg.budget}" onchange="localData[currentYM].variableBudgets[${idx}].budget=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1"><button onclick="localData[currentYM].variableBudgets.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
           vList.appendChild(div);
         });
       }
 
-      // บิลประจำงวด (แก้ชื่อ, วันกำหนดจ่าย, ยอดเงิน, หรือกดลบได้)
       const bList = document.getElementById('planFixedBillList');
       if (bList) {
         bList.innerHTML = '';
@@ -575,12 +583,12 @@
           div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F6F5F1] border text-xs';
           div.innerHTML = `
             <div class="flex-1 flex items-center gap-1">
-              <input type="text" value="${bill.title}" onchange="localData[currentYM].fixedBills[${idx}].title=this.value; localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1">
+              <input type="text" value="${bill.title}" onchange="localData[currentYM].fixedBills[${idx}].title=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1">
               <span class="text-[10px] text-slate-500 whitespace-nowrap">วันที่:</span>
-              <input type="number" value="${bill.dueDate}" onchange="localData[currentYM].fixedBills[${idx}].dueDate=this.value; localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData)); renderAll();" class="w-12 text-center bg-white border rounded p-0.5 font-bold">
+              <input type="number" value="${bill.dueDate}" onchange="localData[currentYM].fixedBills[${idx}].dueDate=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="w-12 text-center bg-white border rounded p-0.5 font-bold">
             </div>
-            <input type="number" value="${bill.amount}" onchange="localData[currentYM].fixedBills[${idx}].amount=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1">
-            <button onclick="localData[currentYM].fixedBills.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v3', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
+            <input type="number" value="${bill.amount}" onchange="localData[currentYM].fixedBills[${idx}].amount=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1">
+            <button onclick="localData[currentYM].fixedBills.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
           bList.appendChild(div);
         });
       }
