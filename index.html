@@ -129,7 +129,7 @@
       </div>
     </div>
 
-    <!-- แท็บ 3: บิล & หนี้สิน (อัปเดตล้อกับข้อมูลจริง) -->
+    <!-- แท็บ 3: บิล & หนี้สิน -->
     <div id="tabContent-bills" class="space-y-4 hidden">
       <div class="bg-white rounded-2xl border overflow-hidden">
         <div class="p-4 border-b flex justify-between items-center">
@@ -257,7 +257,7 @@
         { id: 'b_house_loan', title: 'ผ่อนบ้าน', amount: 10000, dueDate: '5' },
         { id: 'b_water_elec', title: 'ค่าน้ำและค่าไฟ (บิลบ้าน)', amount: 2000, dueDate: '25' },
         { id: 'b_common', title: 'ค่าส่วนกลางบ้าน', amount: 1000, dueDate: '5' },
-        { id: 'b_wifi', title: 'ไวฟายบ้าน', amount: 600, dueDate: '15' },
+        { id: 'b_phone_aom', title: 'ผ่อนโทรศัพท์อ้อม', amount: 1600, dueDate: '15' },
         { id: 'b_netflix', title: 'Netflix', amount: 349, dueDate: '10' },
         { id: 'b_tuition', title: 'ค่าเทอมเฉลี่ยรายเดือน', amount: 8000, dueDate: '1' },
         { id: 'b_tutor', title: 'ค่าเรียนพิเศษลูก', amount: 1500, dueDate: '5' },
@@ -269,7 +269,7 @@
     let currentYM = '2026-10';
     let currentTxType = 'expense';
     let currentTxPayer = 'toon';
-    let localData = JSON.parse(localStorage.getItem('family_budget_sheets_live_v5') || '{}');
+    let localData = JSON.parse(localStorage.getItem('family_budget_sheets_live_v7') || '{}');
 
     function switchTab(tabId) {
       ['daily', 'dashboard', 'bills', 'accounts'].forEach(t => {
@@ -326,7 +326,7 @@
           ensureData(currentYM);
           if (Array.isArray(data)) {
             localData[currentYM].transactions = data;
-            localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
+            localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData));
             renderAll();
           }
         })
@@ -454,7 +454,7 @@
       };
 
       localData[ym].transactions.unshift(newTx);
-      localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData));
 
       if (SCRIPT_URL) {
         fetch(SCRIPT_URL, {
@@ -478,7 +478,7 @@
         const idx = txs.findIndex(t => t.id === txId);
         if (idx > -1) {
           txs.splice(idx, 1);
-          localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
+          localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData));
           renderAll();
 
           if (SCRIPT_URL) {
@@ -528,7 +528,7 @@
       if (!name) return;
       ensureData(currentYM);
       localData[currentYM].incomeConfigs.push({ id: 'inc_' + Date.now(), name, icon: '💵' });
-      localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData));
       renderMasterPlanSettings();
     }
 
@@ -538,19 +538,19 @@
       const budget = parseFloat(prompt('งบประมาณ (บาท):', '1000')) || 0;
       ensureData(currentYM);
       localData[currentYM].variableBudgets.push({ id: 'v_' + Date.now(), name, budget, icon: '🏷️' });
-      localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData));
       renderMasterPlanSettings();
       renderAll();
     }
 
     function promptAddNewFixedBill() {
-      const title = prompt('ชื่อบิลประจำงวดใหม่:');
+      const title = prompt('ชื่อบิลประจำงวดใหม่ (เช่น ผ่อนโทรศัพท์):');
       if (!title) return;
       const amount = parseFloat(prompt('ยอดงบ (บาท):', '1000')) || 0;
       const dueDate = prompt('วันกำหนดจ่าย:', '1') || '1';
       ensureData(currentYM);
       localData[currentYM].fixedBills.push({ id: 'b_' + Date.now(), title, amount, dueDate });
-      localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData));
       renderMasterPlanSettings();
       renderAll();
     }
@@ -565,7 +565,7 @@
         (cur.incomeConfigs || []).forEach((cfg, idx) => {
           const div = document.createElement('div');
           div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F6F5F1] border text-xs';
-          div.innerHTML = `<input type="text" value="${cfg.icon || '💵'}" onchange="localData[currentYM].incomeConfigs[${idx}].icon=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));" class="w-8 text-center bg-white border rounded p-1"><input type="text" value="${cfg.name}" onchange="localData[currentYM].incomeConfigs[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));" class="font-semibold bg-transparent border-b flex-1 px-1"><button onclick="localData[currentYM].incomeConfigs.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderMasterPlanSettings();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
+          div.innerHTML = `<input type="text" value="${cfg.icon || '💵'}" onchange="localData[currentYM].incomeConfigs[${idx}].icon=this.value; localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData));" class="w-8 text-center bg-white border rounded p-1"><input type="text" value="${cfg.name}" onchange="localData[currentYM].incomeConfigs[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData));" class="font-semibold bg-transparent border-b flex-1 px-1"><button onclick="localData[currentYM].incomeConfigs.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData)); renderMasterPlanSettings();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
           iList.appendChild(div);
         });
       }
@@ -576,7 +576,7 @@
         (cur.variableBudgets || []).forEach((cfg, idx) => {
           const div = document.createElement('div');
           div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F6F5F1] border text-xs';
-          div.innerHTML = `<span class="w-8 text-center">${cfg.icon || '🛒'}</span><input type="text" value="${cfg.name}" onchange="localData[currentYM].variableBudgets[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1 px-1"><input type="number" value="${cfg.budget}" onchange="localData[currentYM].variableBudgets[${idx}].budget=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1"><button onclick="localData[currentYM].variableBudgets.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
+          div.innerHTML = `<span class="w-8 text-center">${cfg.icon || '🛒'}</span><input type="text" value="${cfg.name}" onchange="localData[currentYM].variableBudgets[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1 px-1"><input type="number" value="${cfg.budget}" onchange="localData[currentYM].variableBudgets[${idx}].budget=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1"><button onclick="localData[currentYM].variableBudgets.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
           vList.appendChild(div);
         });
       }
@@ -589,12 +589,12 @@
           div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F6F5F1] border text-xs';
           div.innerHTML = `
             <div class="flex-1 flex items-center gap-1">
-              <input type="text" value="${bill.title}" onchange="localData[currentYM].fixedBills[${idx}].title=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1">
+              <input type="text" value="${bill.title}" onchange="localData[currentYM].fixedBills[${idx}].title=this.value; localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData)); renderAll(); renderMasterPlanSettings();" class="font-semibold bg-transparent border-b flex-1">
               <span class="text-[10px] text-slate-500 whitespace-nowrap">วันที่:</span>
-              <input type="number" value="${bill.dueDate}" onchange="localData[currentYM].fixedBills[${idx}].dueDate=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="w-12 text-center bg-white border rounded p-0.5 font-bold">
+              <input type="number" value="${bill.dueDate}" onchange="localData[currentYM].fixedBills[${idx}].dueDate=this.value; localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData)); renderAll();" class="w-12 text-center bg-white border rounded p-0.5 font-bold">
             </div>
-            <input type="number" value="${bill.amount}" onchange="localData[currentYM].fixedBills[${idx}].amount=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1">
-            <button onclick="localData[currentYM].fixedBills.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
+            <input type="number" value="${bill.amount}" onchange="localData[currentYM].fixedBills[${idx}].amount=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1">
+            <button onclick="localData[currentYM].fixedBills.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v7', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
           bList.appendChild(div);
         });
       }
@@ -612,7 +612,7 @@
         txList.innerHTML = '';
         let toonIncome = 0, aomIncome = 0, toonExpense = 0, aomExpense = 0;
         const categoryExpenseTotals = {};
-        const billPayments = {}; // เก็บยอดจ่ายจริงของแต่ละบิล
+        const billPayments = {};
 
         txs.forEach(t => {
           const isToon = t.payer === 'toon';
@@ -623,11 +623,11 @@
             if (isToon) toonExpense += t.amount; else aomExpense += t.amount;
             categoryExpenseTotals[t.categoryId] = (categoryExpenseTotals[t.categoryId] || 0) + t.amount;
             
-            // เช็กว่ารายการนี้จ่ายตรงกับบิลประจำงวดตัวไหน
-            if (t.categoryId) {
-              if (!billPayments[t.categoryId]) { billPayments[t.categoryId] = { total: 0, payers: new Set() }; }
-              billPayments[t.categoryId].total += t.amount;
-              billPayments[t.categoryId].payers.add(isToon ? '🧔 ตูน' : '👩 อ้อม');
+            const cleanName = (t.categoryName || "").trim();
+            if (cleanName) {
+              if (!billPayments[cleanName]) { billPayments[cleanName] = { total: 0, payers: new Set() }; }
+              billPayments[cleanName].total += t.amount;
+              billPayments[cleanName].payers.add(isToon ? '🧔 ตูน' : '👩 อ้อม');
             }
           }
 
@@ -656,14 +656,14 @@
           txList.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">✨ ยังไม่มีรายการบันทึกในเดือนนี้</div>`;
         }
 
-        // Render Bills Table ล้อตามข้อมูลจริง
         let fixedBudgetTotal = 0;
         const billsTable = document.getElementById('fixedBillsTableBody');
         if (billsTable) {
           billsTable.innerHTML = '';
           bills.forEach(b => {
             fixedBudgetTotal += b.amount;
-            const payment = billPayments[b.id];
+            const bTitle = (b.title || "").trim();
+            const payment = billPayments[bTitle];
             let actualPaid = payment ? payment.total : 0;
             let payerText = payment ? Array.from(payment.payers).join(', ') : '-';
             
