@@ -47,9 +47,6 @@
         <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-xl text-slate-200 hover:bg-[#3E4A4F] transition-all whitespace-nowrap">
           <span>📊</span> แดชบอร์ด & สรุปยอด
         </button>
-        <button onclick="toggleConfigModal()" class="text-xs text-slate-200 bg-[#3E4A4F] hover:bg-[#4E5D63] px-3 py-1.5 rounded-xl font-medium transition-all flex items-center gap-1 ml-2">
-          <span>⚙️</span> ตั้งค่าเชื่อมต่อชีท
-        </button>
       </div>
     </div>
   </header>
@@ -62,8 +59,8 @@
         <select id="monthSelector" onchange="onMonthChange(this.value)" class="bg-[#F0EFEA] text-[#2C3539] font-bold text-xs rounded-lg px-2.5 py-1.5 border border-[#D8D5CC]">
         </select>
       </div>
-      <span id="syncStatusBadge" class="inline-flex items-center gap-1 text-[11px] bg-amber-50 text-amber-800 px-2.5 py-1 rounded-md border border-amber-200 font-medium">
-        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> ยังไม่ผูก Google Sheet (บันทึกในเครื่อง)
+      <span id="syncStatusBadge" class="inline-flex items-center gap-1 text-[11px] bg-[#EEF5F1] text-[#2D6A4F] px-2.5 py-1 rounded-md border border-[#C6E2D3] font-medium">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#2D6A4F]"></span> เชื่อมต่อ Google Sheets แล้ว
       </span>
     </div>
   </div>
@@ -207,20 +204,10 @@
     </div>
   </div>
 
-  <!-- Modal ตั้งค่า Google Sheet URL -->
-  <div id="configModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-3 border">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm">⚙️ ตั้งค่าลิงก์ Google Sheets</h3>
-        <button onclick="toggleConfigModal()" class="text-slate-400 text-lg">&times;</button>
-      </div>
-      <p class="text-xs text-slate-500">วางลิงก์ Web App URL จาก Google Apps Script ที่ได้จากการ Deploy:</p>
-      <input type="text" id="scriptUrlInput" class="w-full border rounded-lg p-2 text-xs font-mono bg-[#F6F5F1]" placeholder="https://script.google.com/macros/s/.../exec">
-      <button onclick="saveScriptUrl()" class="w-full bg-[#2C3539] text-white font-semibold py-2 rounded-lg text-xs">บันทึกการเชื่อมต่อ</button>
-    </div>
-  </div>
-
   <script>
+    // ฝังลิงก์ Google Sheets Web App ไว้เรียบร้อยแล้ว
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRU3_YbA2kvNWkmJcCvxwGXLcOBF2nUpDydkpxHWSYdpJnj22ruggUQyT3oGkt0ob_WA/exec";
+
     let currentYM = '2026-10';
     let currentTxType = 'expense';
     let currentTxPayer = 'toon';
@@ -324,10 +311,9 @@
       localData[ym].transactions.unshift(newTx);
       localStorage.setItem('family_budget_sheets_v1', JSON.stringify(localData));
 
-      // ส่งข้อมูลไป Google Sheets (ถ้ามีการตั้งค่า URL ไว้)
-      const scriptUrl = localStorage.getItem('family_budget_script_url');
-      if (scriptUrl) {
-        fetch(scriptUrl, {
+      // ส่งข้อมูลเข้า Google Sheets อัตโนมัติทันที
+      if (SCRIPT_URL) {
+        fetch(SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
@@ -337,7 +323,7 @@
 
       closeTxModal();
       renderAll();
-      alert('บันทึกข้อมูลเรียบร้อย!');
+      alert('บันทึกข้อมูลและส่งเข้า Google Sheets เรียบร้อย!');
     }
 
     function deleteTransaction(txId) {
@@ -349,35 +335,6 @@
           localStorage.setItem('family_budget_sheets_v1', JSON.stringify(localData));
           renderAll();
         }
-      }
-    }
-
-    function toggleConfigModal() {
-      document.getElementById('configModal').classList.toggle('hidden');
-    }
-
-    function saveScriptUrl() {
-      const url = document.getElementById('scriptUrlInput').value.trim();
-      if (url) {
-        localStorage.setItem('family_budget_script_url', url);
-        checkSyncStatus();
-        toggleConfigModal();
-        alert('บันทึกการเชื่อมต่อ Google Sheets สำเร็จ!');
-      } else {
-        localStorage.removeItem('family_budget_script_url');
-        checkSyncStatus();
-        toggleConfigModal();
-      }
-    }
-
-    function checkSyncStatus() {
-      const scriptUrl = localStorage.getItem('family_budget_script_url');
-      const badge = document.getElementById('syncStatusBadge');
-      if (scriptUrl) {
-        badge.className = 'inline-flex items-center gap-1 text-[11px] bg-[#EEF5F1] text-[#2D6A4F] px-2.5 py-1 rounded-md border border-[#C6E2D3] font-medium';
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-[#2D6A4F]"></span> เชื่อมต่อ Google Sheets แล้ว';
-        const input = document.getElementById('scriptUrlInput');
-        if (input) input.value = scriptUrl;
       }
     }
 
@@ -413,7 +370,7 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="font-bold text-xs md:text-sm ${isInc ? 'text-[#2D6A4F]' : 'text-[#C86A58]'}">${isInc ? '+' : '-'}฿${t.amount.toLocaleString()}</span>
+            <span class="font-bold text-xs md:text-sm ${isInc ? 'text-[#2D6A4F] ' : 'text-[#C86A58]'}">${isInc ? '+' : '-'}฿${t.amount.toLocaleString()}</span>
             <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 text-xs p-1">✕</button>
           </div>`;
         txList.appendChild(div);
@@ -431,7 +388,6 @@
     window.onload = () => {
       initMonthSelector();
       ensureData(currentYM);
-      checkSyncStatus();
       renderAll();
     };
   </script>
