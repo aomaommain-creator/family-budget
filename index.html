@@ -58,6 +58,7 @@
         <div>
           <span class="text-xs font-medium text-[#F3C766] block">✨ ซิงค์ตรงกับ Google Sheets อัตโนมัติ</span>
           <h2 class="text-base md:text-lg font-bold font-heading">ลงบันทึก รายรับ / รายจ่าย วันนี้</h2>
+          <p class="text-[11px] text-slate-300">เลือกบิลประจำงวดจากดรอปดาวน์เพื่อตัดยอดอัตโนมัติ</p>
         </div>
         <button onclick="openTxModal()" class="w-full sm:w-auto px-5 py-2.5 bg-[#E5A93C] hover:bg-[#D4992C] text-[#2C3539] font-bold font-heading text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
           <span class="text-lg">➕</span> บันทึกรายการใหม่
@@ -128,11 +129,14 @@
       </div>
     </div>
 
-    <!-- แท็บ 3: บิล -->
+    <!-- แท็บ 3: บิล & หนี้สิน (อัปเดตล้อกับข้อมูลจริง) -->
     <div id="tabContent-bills" class="space-y-4 hidden">
       <div class="bg-white rounded-2xl border overflow-hidden">
         <div class="p-4 border-b flex justify-between items-center">
-          <h3 class="text-sm font-bold font-heading text-slate-800">📋 ตารางบิลที่ต้องชำระ & หนี้สิน</h3>
+          <div>
+            <h3 class="text-sm font-bold font-heading text-slate-800">📋 ตารางบิลที่ต้องชำระ & หนี้สิน</h3>
+            <p class="text-[11px] text-slate-400">อัปเดตสถานะอัตโนมัติเมื่อมีการบันทึกรายจ่าย</p>
+          </div>
           <span class="text-xs font-bold bg-[#EFECE6] px-2.5 py-1 rounded-lg" id="fixedBillsTotalBadge">งบรวม: ฿0</span>
         </div>
         <div class="overflow-x-auto">
@@ -141,8 +145,10 @@
               <tr>
                 <th class="py-2.5 px-3 text-center w-20">กำหนดจ่าย</th>
                 <th class="py-2.5 px-3">รายการ</th>
+                <th class="py-2.5 px-3 text-center w-28">ผู้จ่าย</th>
                 <th class="py-2.5 px-3 text-right">ยอดงบ</th>
-                <th class="py-2.5 px-3 text-center w-28">สถานะ</th>
+                <th class="py-2.5 px-3 text-right">ยอดจ่ายจริง</th>
+                <th class="py-2.5 px-3 text-center w-32">สถานะ</th>
               </tr>
             </thead>
             <tbody id="fixedBillsTableBody" class="divide-y"></tbody>
@@ -198,7 +204,7 @@
         </div>
       </div>
       <div class="space-y-1"><label class="text-xs font-semibold">วันที่ทำรายการ:</label><input type="date" id="txDate" class="w-full text-xs bg-[#F6F5F1] border rounded-lg p-2"></div>
-      <div class="space-y-1"><label class="text-xs font-semibold">หมวดหมู่ / รายการ:</label><select id="txCategory" class="w-full text-xs bg-[#F6F5F1] border rounded-lg p-2"></select></div>
+      <div class="space-y-1"><label class="text-xs font-semibold">หมวดหมู่ / บิลประจำงวด:</label><select id="txCategory" class="w-full text-xs bg-[#F6F5F1] border rounded-lg p-2"></select></div>
       <div class="space-y-1"><label class="text-xs font-semibold">จำนวนเงิน (บาท):</label><input type="number" step="0.01" id="txAmount" placeholder="0.00" class="w-full text-right font-bold text-lg bg-[#F6F5F1] border rounded-lg p-2"></div>
       <div class="space-y-1"><label class="text-xs font-semibold">โน้ตช่วยจำ:</label><input type="text" id="txNote" placeholder="ระบุเพิ่มเติม..." class="w-full text-xs bg-[#F6F5F1] border rounded-lg p-2"></div>
       <button onclick="saveDailyTransaction()" class="w-full bg-[#2C3539] text-white font-bold py-2.5 rounded-xl text-xs">✓ บันทึกทันที</button>
@@ -248,6 +254,7 @@
 
     function getDefaultFixedBills(ym) {
       return [
+        { id: 'b_house_loan', title: 'ผ่อนบ้าน', amount: 10000, dueDate: '5' },
         { id: 'b_water_elec', title: 'ค่าน้ำและค่าไฟ (บิลบ้าน)', amount: 2000, dueDate: '25' },
         { id: 'b_common', title: 'ค่าส่วนกลางบ้าน', amount: 1000, dueDate: '5' },
         { id: 'b_wifi', title: 'ไวฟายบ้าน', amount: 600, dueDate: '15' },
@@ -262,7 +269,7 @@
     let currentYM = '2026-10';
     let currentTxType = 'expense';
     let currentTxPayer = 'toon';
-    let localData = JSON.parse(localStorage.getItem('family_budget_sheets_live_v4') || '{}');
+    let localData = JSON.parse(localStorage.getItem('family_budget_sheets_live_v5') || '{}');
 
     function switchTab(tabId) {
       ['daily', 'dashboard', 'bills', 'accounts'].forEach(t => {
@@ -319,7 +326,7 @@
           ensureData(currentYM);
           if (Array.isArray(data)) {
             localData[currentYM].transactions = data;
-            localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
+            localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
             renderAll();
           }
         })
@@ -447,7 +454,7 @@
       };
 
       localData[ym].transactions.unshift(newTx);
-      localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
 
       if (SCRIPT_URL) {
         fetch(SCRIPT_URL, {
@@ -465,14 +472,13 @@
       alert('บันทึกข้อมูลและส่งเข้า Google Sheets เรียบร้อย!');
     }
 
-    // ฟังก์ชันลบรายการ (รองรับการลบออกจาก Google Sheet ด้วย)
     function deleteTransaction(txId) {
       if (confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) {
         const txs = localData[currentYM].transactions;
         const idx = txs.findIndex(t => t.id === txId);
         if (idx > -1) {
           txs.splice(idx, 1);
-          localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
+          localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
           renderAll();
 
           if (SCRIPT_URL) {
@@ -522,29 +528,29 @@
       if (!name) return;
       ensureData(currentYM);
       localData[currentYM].incomeConfigs.push({ id: 'inc_' + Date.now(), name, icon: '💵' });
-      localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
       renderMasterPlanSettings();
     }
 
     function promptAddNewVariableBudget() {
-      const name = prompt('ชื่อหมวดงบผันแปรใหม่ (เช่น ค่าเน็ต, ค่าใช้จ่ายส่วนตัว):');
+      const name = prompt('ชื่อหมวดงบผันแปรใหม่:');
       if (!name) return;
       const budget = parseFloat(prompt('งบประมาณ (บาท):', '1000')) || 0;
       ensureData(currentYM);
       localData[currentYM].variableBudgets.push({ id: 'v_' + Date.now(), name, budget, icon: '🏷️' });
-      localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
       renderMasterPlanSettings();
       renderAll();
     }
 
     function promptAddNewFixedBill() {
-      const title = prompt('ชื่อบิลประจำงวดใหม่ (เช่น ผ่อนบ้าน, ค่าประกัน):');
+      const title = prompt('ชื่อบิลประจำงวดใหม่:');
       if (!title) return;
       const amount = parseFloat(prompt('ยอดงบ (บาท):', '1000')) || 0;
-      const dueDate = prompt('วันกำหนดจ่าย (เช่น 5, 25):', '1') || '1';
+      const dueDate = prompt('วันกำหนดจ่าย:', '1') || '1';
       ensureData(currentYM);
       localData[currentYM].fixedBills.push({ id: 'b_' + Date.now(), title, amount, dueDate });
-      localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));
       renderMasterPlanSettings();
       renderAll();
     }
@@ -559,7 +565,7 @@
         (cur.incomeConfigs || []).forEach((cfg, idx) => {
           const div = document.createElement('div');
           div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F6F5F1] border text-xs';
-          div.innerHTML = `<input type="text" value="${cfg.icon || '💵'}" onchange="localData[currentYM].incomeConfigs[${idx}].icon=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));" class="w-8 text-center bg-white border rounded p-1"><input type="text" value="${cfg.name}" onchange="localData[currentYM].incomeConfigs[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData));" class="font-semibold bg-transparent border-b flex-1 px-1"><button onclick="localData[currentYM].incomeConfigs.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderMasterPlanSettings();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
+          div.innerHTML = `<input type="text" value="${cfg.icon || '💵'}" onchange="localData[currentYM].incomeConfigs[${idx}].icon=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));" class="w-8 text-center bg-white border rounded p-1"><input type="text" value="${cfg.name}" onchange="localData[currentYM].incomeConfigs[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData));" class="font-semibold bg-transparent border-b flex-1 px-1"><button onclick="localData[currentYM].incomeConfigs.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderMasterPlanSettings();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
           iList.appendChild(div);
         });
       }
@@ -570,7 +576,7 @@
         (cur.variableBudgets || []).forEach((cfg, idx) => {
           const div = document.createElement('div');
           div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F6F5F1] border text-xs';
-          div.innerHTML = `<span class="w-8 text-center">${cfg.icon || '🛒'}</span><input type="text" value="${cfg.name}" onchange="localData[currentYM].variableBudgets[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1 px-1"><input type="number" value="${cfg.budget}" onchange="localData[currentYM].variableBudgets[${idx}].budget=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1"><button onclick="localData[currentYM].variableBudgets.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
+          div.innerHTML = `<span class="w-8 text-center">${cfg.icon || '🛒'}</span><input type="text" value="${cfg.name}" onchange="localData[currentYM].variableBudgets[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1 px-1"><input type="number" value="${cfg.budget}" onchange="localData[currentYM].variableBudgets[${idx}].budget=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1"><button onclick="localData[currentYM].variableBudgets.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
           vList.appendChild(div);
         });
       }
@@ -583,12 +589,12 @@
           div.className = 'flex items-center justify-between gap-2 p-2 rounded-xl bg-[#F6F5F1] border text-xs';
           div.innerHTML = `
             <div class="flex-1 flex items-center gap-1">
-              <input type="text" value="${bill.title}" onchange="localData[currentYM].fixedBills[${idx}].title=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1">
+              <input type="text" value="${bill.title}" onchange="localData[currentYM].fixedBills[${idx}].title=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b flex-1">
               <span class="text-[10px] text-slate-500 whitespace-nowrap">วันที่:</span>
-              <input type="number" value="${bill.dueDate}" onchange="localData[currentYM].fixedBills[${idx}].dueDate=this.value; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="w-12 text-center bg-white border rounded p-0.5 font-bold">
+              <input type="number" value="${bill.dueDate}" onchange="localData[currentYM].fixedBills[${idx}].dueDate=this.value; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="w-12 text-center bg-white border rounded p-0.5 font-bold">
             </div>
-            <input type="number" value="${bill.amount}" onchange="localData[currentYM].fixedBills[${idx}].amount=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1">
-            <button onclick="localData[currentYM].fixedBills.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v4', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
+            <input type="number" value="${bill.amount}" onchange="localData[currentYM].fixedBills[${idx}].amount=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border rounded p-1">
+            <button onclick="localData[currentYM].fixedBills.splice(${idx},1); localStorage.setItem('family_budget_sheets_live_v5', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-300 hover:text-rose-500 font-bold">✕</button>`;
           bList.appendChild(div);
         });
       }
@@ -606,6 +612,7 @@
         txList.innerHTML = '';
         let toonIncome = 0, aomIncome = 0, toonExpense = 0, aomExpense = 0;
         const categoryExpenseTotals = {};
+        const billPayments = {}; // เก็บยอดจ่ายจริงของแต่ละบิล
 
         txs.forEach(t => {
           const isToon = t.payer === 'toon';
@@ -615,6 +622,13 @@
           } else {
             if (isToon) toonExpense += t.amount; else aomExpense += t.amount;
             categoryExpenseTotals[t.categoryId] = (categoryExpenseTotals[t.categoryId] || 0) + t.amount;
+            
+            // เช็กว่ารายการนี้จ่ายตรงกับบิลประจำงวดตัวไหน
+            if (t.categoryId) {
+              if (!billPayments[t.categoryId]) { billPayments[t.categoryId] = { total: 0, payers: new Set() }; }
+              billPayments[t.categoryId].total += t.amount;
+              billPayments[t.categoryId].payers.add(isToon ? '🧔 ตูน' : '👩 อ้อม');
+            }
           }
 
           const div = document.createElement('div');
@@ -642,19 +656,35 @@
           txList.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">✨ ยังไม่มีรายการบันทึกในเดือนนี้</div>`;
         }
 
+        // Render Bills Table ล้อตามข้อมูลจริง
         let fixedBudgetTotal = 0;
         const billsTable = document.getElementById('fixedBillsTableBody');
         if (billsTable) {
           billsTable.innerHTML = '';
           bills.forEach(b => {
             fixedBudgetTotal += b.amount;
+            const payment = billPayments[b.id];
+            let actualPaid = payment ? payment.total : 0;
+            let payerText = payment ? Array.from(payment.payers).join(', ') : '-';
+            
+            let statusHtml = `<span class="px-2 py-0.5 rounded text-[10px] bg-amber-50 text-amber-700 border border-amber-200">⏳ รอชำระ</span>`;
+            if (actualPaid > 0) {
+              if (actualPaid >= b.amount) {
+                statusHtml = `<span class="px-2 py-0.5 rounded text-[10px] bg-[#EEF5F1] text-[#2D6A4F] border border-[#C6E2D3] font-bold">✓ ชำระเต็มจำนวน</span>`;
+              } else {
+                statusHtml = `<span class="px-2 py-0.5 rounded text-[10px] bg-blue-50 text-blue-700 border border-blue-200">⚡ ชำระบางส่วน</span>`;
+              }
+            }
+
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-[#F6F5F1] bg-white';
             tr.innerHTML = `
               <td class="py-2.5 px-3 text-center"><span class="bg-[#F0EFEA] font-bold px-1.5 py-0.5 rounded text-[10px]">ทุกวันที่ ${b.dueDate}</span></td>
               <td class="py-2.5 px-3 font-semibold text-slate-800">${b.title}</td>
+              <td class="py-2.5 px-3 text-center text-[11px] font-medium">${payerText}</td>
               <td class="py-2.5 px-3 text-right font-medium text-slate-500">฿${b.amount.toLocaleString()}</td>
-              <td class="py-2.5 px-3 text-center"><span class="px-2 py-1 rounded text-[10px] bg-slate-100 text-slate-600">บิลประจำงวด</span></td>`;
+              <td class="py-2.5 px-3 text-right font-bold text-[#C86A58]">${actualPaid > 0 ? '฿' + actualPaid.toLocaleString() : '-'}</td>
+              <td class="py-2.5 px-3 text-center">${statusHtml}</td>`;
             billsTable.appendChild(tr);
           });
         }
