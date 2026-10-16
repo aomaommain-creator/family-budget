@@ -17,48 +17,51 @@
 </head>
 <body class="pb-28">
 
-  <!-- ================= Header ================= -->
+  <!-- ================= Header (Corporate Flat Design) ================= -->
   <header class="bg-[#1E3A8A] text-white sticky top-0 z-30 shadow-sm">
-    <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center gap-3">
+    <div class="max-w-5xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xl font-bold shadow-sm">🏡</div>
         <div>
           <h1 class="text-sm md:text-base font-semibold tracking-tight flex items-center gap-2">
-            เงินบ้านเรา <span class="text-[10px] bg-blue-900/60 text-blue-200 px-2 py-0.5 rounded-md border border-blue-700/50">Google Sheets Connected</span>
+            เงินบ้านเรา <span class="text-[11px] bg-blue-900/60 text-blue-200 font-normal px-2 py-0.5 rounded-md border border-blue-700/50">Google Sheets Sync</span>
           </h1>
-          <p class="text-[11px] text-blue-200">อ้อม & ตูน</p>
+          <p class="text-[11px] text-blue-200">ระบบจัดการการเงินครอบครัว • อ้อม & ตูน</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button onclick="switchTab('daily')" id="nav-daily" class="text-xs font-medium px-3.5 py-2 rounded-lg bg-blue-600 text-white shadow-xs transition-all">⚡ บันทึก</button>
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="text-xs font-medium px-3.5 py-2 rounded-lg text-blue-100 hover:bg-blue-800/60 transition-all">📊 แดชบอร์ดกระเป๋า</button>
+      <!-- เมนูแนวนอนแบบคลีนๆ -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+        <button onclick="switchTab('daily')" id="nav-daily" class="flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-lg bg-blue-600 text-white shadow-xs transition-all whitespace-nowrap">⚡ บันทึกประจำวัน</button>
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-lg text-blue-100 hover:bg-blue-800/60 transition-all whitespace-nowrap">📊 แดชบอร์ด</button>
+        <button onclick="switchTab('bills')" id="nav-bills" class="flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-lg text-blue-100 hover:bg-blue-800/60 transition-all whitespace-nowrap">📋 บิล & หนี้สิน</button>
+        <button onclick="switchTab('accounts')" id="nav-accounts" class="flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-lg text-blue-100 hover:bg-blue-800/60 transition-all whitespace-nowrap">🏛️ ตั้งค่าแผนงบ</button>
       </div>
     </div>
   </header>
 
-  <!-- ================= แถบเลือกเดือน ================= -->
+  <!-- ================= Sub Header (Month & Sync Status) ================= -->
   <div class="bg-white border-b border-slate-200 shadow-2xs">
-    <div class="max-w-4xl mx-auto px-4 py-2.5 flex justify-between items-center">
+    <div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap justify-between items-center gap-2">
       <div class="flex items-center gap-2.5">
         <span class="text-xs font-medium text-slate-500">รอบเดือน:</span>
         <select id="monthSelector" onchange="onMonthChange(this.value)" class="bg-slate-50 text-slate-800 font-semibold text-xs rounded-lg px-3 py-1.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
       </div>
       <button onclick="fetchDataFromSheet()" class="text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 font-medium px-3 py-1.5 rounded-lg border border-blue-200 transition-all flex items-center gap-1">
-        <span>🔄</span> โหลดข้อมูลจาก Sheet
+        <span>🔄</span> โหลดข้อมูลล่าสุด
       </button>
     </div>
   </div>
 
-  <main class="max-w-4xl mx-auto p-4 md:p-6 space-y-5">
+  <main class="max-w-5xl mx-auto p-4 md:p-6 space-y-5">
     
     <!-- แท็บ 1: บันทึกประจำวัน -->
     <div id="tabContent-daily" class="space-y-4">
       <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
-          <span class="text-xs font-semibold text-blue-600 uppercase tracking-wider block mb-1">Live Sync with Google Sheets</span>
-          <h2 class="text-lg font-bold text-slate-800">จดบันทึก รายรับ / รายจ่าย</h2>
-          <p class="text-xs text-slate-500 mt-0.5">ข้อมูลซิงค์ตรงกับ Google Sheets อัตโนมัติ</p>
+          <span class="text-xs font-semibold text-blue-600 uppercase tracking-wider block mb-1">Live Synchronization</span>
+          <h2 class="text-lg font-bold text-slate-800">บันทึกรายรับ / รายจ่าย ประจำวัน</h2>
+          <p class="text-xs text-slate-500 mt-0.5">เลือกบิลประจำงวดเพื่อระบบตัดยอดอัตโนมัติ</p>
         </div>
         <button onclick="openTxModal()" class="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap">
           <span class="text-base font-bold">+</span> บันทึกรายการใหม่
@@ -68,7 +71,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-            <span>📅</span> ประวัติรายการเดือนนี้
+            <span>📅</span> ประวัติการทำรายการล่าสุด
           </h3>
           <span class="text-xs font-semibold text-slate-600 bg-slate-200/70 px-2.5 py-1 rounded-md" id="quickTxCount">รวม 0 รายการ</span>
         </div>
@@ -76,21 +79,24 @@
       </div>
     </div>
 
-    <!-- แท็บ 2: แดชบอร์ดกระเป๋าเงิน -->
+    <!-- แท็บ 2: แดชบอร์ดสรุปยอด -->
     <div id="tabContent-dashboard" class="hidden space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- กระเป๋าตูน -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
-          <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
-            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-lg font-bold border border-blue-100">🧔</div>
-            <div>
-              <h3 class="font-bold text-sm text-slate-800">กระเป๋าเงินตูน</h3>
-              <span class="text-[11px] text-slate-500">ภาพรวมการเงินของตูน</span>
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-lg font-bold border border-blue-100">🧔</div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-800">กระเป๋าเงินตูน</h3>
+                <span class="text-[11px] text-slate-500">เงินเดือนตูน</span>
+              </div>
             </div>
+            <button onclick="openPersonDetailsModal('toon')" class="text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg font-medium border border-blue-200 transition-all">ดูรายละเอียด</button>
           </div>
           <div class="grid grid-cols-2 gap-3 text-xs">
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[11px] text-slate-500 block">รายรับรวม</span><strong class="text-sm font-bold text-slate-800 mt-0.5 block" id="walletToonIncome">฿0.00</strong></div>
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[11px] text-slate-500 block">รายจ่ายรวม</span><strong class="text-sm font-bold text-rose-600 mt-0.5 block" id="walletToonExpense">฿0.00</strong></div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[11px] text-slate-500 block">ตูนจ่ายไป</span><strong class="text-sm font-bold text-rose-600 mt-0.5 block" id="walletToonExpense">฿0.00</strong></div>
           </div>
           <div class="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-700">เงินคงเหลือกระเป๋าตูน:</span>
@@ -100,16 +106,19 @@
 
         <!-- กระเป๋าอ้อม -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
-          <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg font-bold border border-amber-100">👩</div>
-            <div>
-              <h3 class="font-bold text-sm text-slate-800">กระเป๋าเงินอ้อม</h3>
-              <span class="text-[11px] text-slate-500">ภาพรวมการเงินของอ้อม</span>
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg font-bold border border-amber-100">👩</div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-800">กระเป๋าเงินอ้อม</h3>
+                <span class="text-[11px] text-slate-500">ร้านอุทร + หวย</span>
+              </div>
             </div>
+            <button onclick="openPersonDetailsModal('aom')" class="text-xs text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg font-medium border border-amber-200 transition-all">ดูรายละเอียด</button>
           </div>
           <div class="grid grid-cols-2 gap-3 text-xs">
             <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[11px] text-slate-500 block">รายรับรวม</span><strong class="text-sm font-bold text-slate-800 mt-0.5 block" id="walletAomIncome">฿0.00</strong></div>
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[11px] text-slate-500 block">รายจ่ายรวม</span><strong class="text-sm font-bold text-rose-600 mt-0.5 block" id="walletAomExpense">฿0.00</strong></div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><span class="text-[11px] text-slate-500 block">อ้อมจ่ายไป</span><strong class="text-sm font-bold text-rose-600 mt-0.5 block" id="walletAomExpense">฿0.00</strong></div>
           </div>
           <div class="p-3.5 rounded-xl bg-amber-50/60 border border-amber-100 flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-700">เงินคงเหลือกระเป๋าอ้อม:</span>
@@ -118,77 +127,171 @@
         </div>
       </div>
 
-      <!-- สรุปภาพรวมทั้งบ้าน -->
+      <!-- สรุปภาพรวม -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs"><span class="text-xs text-slate-500 block mb-1">รายรับรวมทั้งบ้าน</span><div id="dashTotalIncome" class="text-base font-bold text-slate-800">฿0.00</div></div>
         <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs"><span class="text-xs text-slate-500 block mb-1">รายจ่ายรวมทั้งหมด</span><div id="dashTotalExpense" class="text-base font-bold text-rose-600">฿0.00</div></div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs"><span class="text-xs text-slate-500 block mb-1">เงินคงเหลือรวม 2 คน</span><div id="dashTotalNet" class="text-base font-bold text-emerald-600">฿0.00</div></div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs col-span-1 sm:col-span-1"><span class="text-xs text-slate-500 block mb-1">เงินคงเหลือรวม 2 คน</span><div id="dashTotalNet" class="text-base font-bold text-emerald-600">฿0.00</div></div>
+      </div>
+
+      <!-- ติดตามงบผันแปร -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+        <h3 class="text-sm font-bold text-slate-800">🎯 ติดตามงบประมาณรายจ่ายผันแปร</h3>
+        <div id="budgetTrackerContainer" class="space-y-3 pt-1"></div>
+      </div>
+    </div>
+
+    <!-- แท็บ 3: บิล & หนี้สิน -->
+    <div id="tabContent-bills" class="space-y-4 hidden">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800">📋 ตารางบิลที่ต้องชำระ & หนี้สิน</h3>
+            <p class="text-[11px] text-slate-500">สถานะอัปเดตอัตโนมัติจากข้อมูลการบันทึกจริง</p>
+          </div>
+          <span class="text-xs font-semibold bg-slate-200/70 text-slate-700 px-3 py-1 rounded-lg" id="fixedBillsTotalBadge">งบรวม: ฿0</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4 text-center w-20">กำหนดจ่าย</th>
+                <th class="py-3 px-4">รายการบิล</th>
+                <th class="py-3 px-4 text-center w-28">ผู้จ่าย</th>
+                <th class="py-3 px-4 text-right">ยอดงบ</th>
+                <th class="py-3 px-4 text-right">ยอดจ่ายจริง</th>
+                <th class="py-3 px-4 text-center w-32">สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="fixedBillsTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- แท็บ 4: ตั้งค่าแผนงบ -->
+    <div id="tabContent-accounts" class="hidden space-y-4">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h4 class="text-sm font-bold text-slate-800">💰 ตั้งค่าชื่อรายการรายรับ</h4>
+          <button onclick="promptAddNewIncomeConfig()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-2xs">➕ เพิ่มรายรับ</button>
+        </div>
+        <div id="planIncomeConfigList" class="space-y-2"></div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h4 class="text-sm font-bold text-slate-800">🎯 หมวดงบประมาณผันแปร</h4>
+          <button onclick="promptAddNewVariableBudget()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-2xs">➕ เพิ่มหมวดงบ</button>
+        </div>
+        <div id="planVariableBudgetList" class="space-y-2"></div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h4 class="text-sm font-bold text-slate-800">📋 ตารางบิลประจำงวด & วันกำหนดจ่าย</h4>
+          <button onclick="promptAddNewFixedBill()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-2xs">➕ เพิ่มบิลใหม่</button>
+        </div>
+        <div id="planFixedBillList" class="space-y-2"></div>
       </div>
     </div>
   </main>
 
-  <!-- Modal บันทึกรายการ -->
+  <!-- Modal บันทึก -->
   <div id="txModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl space-y-4 border border-slate-200">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl space-y-4 border border-slate-200 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-sm text-slate-800">📝 บันทึกรายการใหม่</h3>
+        <h3 class="font-bold text-sm text-slate-800">📝 บันทึกรายการประจำวัน</h3>
         <button onclick="closeTxModal()" class="text-slate-400 text-lg hover:text-slate-600">&times;</button>
       </div>
-
       <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
         <button type="button" onclick="setTxType('expense')" id="btnTxTypeExpense" class="py-2.5 rounded-lg bg-rose-600 text-white text-center shadow-2xs">💸 รายจ่าย</button>
         <button type="button" onclick="setTxType('income')" id="btnTxTypeIncome" class="py-2.5 rounded-lg text-slate-600 text-center">💰 รายรับ</button>
       </div>
-
       <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-700" id="lblTxPayer">กระเป๋าเงินของ:</label>
+        <label class="text-xs font-semibold text-slate-700" id="lblTxPayer">ผู้ทำรายการ:</label>
         <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="setTxPayer('toon')" id="btnPayerToon" class="py-2.5 rounded-xl border-2 border-blue-600 bg-blue-50 text-xs font-bold text-blue-900">🧔 ตูน</button>
-          <button type="button" onclick="setTxPayer('aom')" id="btnPayerAom" class="py-2.5 rounded-xl border bg-slate-50 text-xs font-semibold text-slate-700">👩 อ้อม</button>
+          <button type="button" onclick="setTxPayer('toon')" id="btnPayerToon" class="py-2.5 rounded-xl border bg-slate-50 text-xs font-semibold">🧔 ตูน</button>
+          <button type="button" onclick="setTxPayer('aom')" id="btnPayerAom" class="py-2.5 rounded-xl border bg-slate-50 text-xs font-semibold">👩 อ้อม</button>
         </div>
       </div>
+      <div class="space-y-1.5"><label class="text-xs font-semibold text-slate-700">วันที่ทำรายการ:</label><input type="date" id="txDate" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600"></div>
+      <div class="space-y-1.5"><label class="text-xs font-semibold text-slate-700">หมวดหมู่ / บิลประจำงวด:</label><select id="txCategory" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600"></select></div>
+      <div class="space-y-1.5"><label class="text-xs font-semibold text-slate-700">จำนวนเงิน (บาท):</label><input type="number" step="0.01" id="txAmount" placeholder="0.00" class="w-full text-right font-bold text-base bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600"></div>
+      <div class="space-y-1.5"><label class="text-xs font-semibold text-slate-700">โน้ตช่วยจำ:</label><input type="text" id="txNote" placeholder="ระบุเพิ่มเติม..." class="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600"></div>
+      <button onclick="saveDailyTransaction()" class="w-full bg-[#1E3A8A] hover:bg-blue-900 text-white font-semibold py-3 rounded-xl text-xs shadow-sm transition-all">✓ บันทึกข้อมูล</button>
+    </div>
+  </div>
 
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-700">วันที่:</label>
-        <input type="date" id="txDate" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600">
-      </div>
-
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-700">หมวดหมู่:</label>
-        <input type="text" id="txCategory" placeholder="เช่น ค่าอาหาร, เงินเดือน, ผ่อนบ้าน" class="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600">
-      </div>
-
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-700">จำนวนเงิน (บาท):</label>
-        <input type="number" step="0.01" id="txAmount" placeholder="0.00" class="w-full text-right font-bold text-base bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600">
-      </div>
-
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-700">โน้ตเพิ่มเติม (ถ้ามี):</label>
-        <input type="text" id="txNote" placeholder="รายละเอียด..." class="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600">
-      </div>
-
-      <button onclick="saveDailyTransaction()" class="w-full bg-[#1E3A8A] hover:bg-blue-900 text-white font-semibold py-3 rounded-xl text-xs shadow-sm transition-all">✓ บันทึกรายการ</button>
+  <!-- Modal รายละเอียด -->
+  <div id="personDetailsModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4 border border-slate-200 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3"><h3 class="font-bold text-sm text-slate-800" id="pdmTitle">รายการ</h3><button onclick="closePersonDetailsModal()" class="text-slate-400 text-lg hover:text-slate-600">&times;</button></div>
+      <div id="pdmListContainer" class="flex-1 overflow-y-auto space-y-2 py-1"></div>
+      <div class="border-t border-slate-100 pt-3 flex justify-between items-center text-xs font-bold"><span>รวมทั้งหมด:</span><span id="pdmTotalPaid" class="text-sm text-rose-600">฿0.00</span></div>
+      <button onclick="closePersonDetailsModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 rounded-xl text-xs">ปิดหน้าต่าง</button>
     </div>
   </div>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRU3_YbA2kvNWkmJcCvxwGXLcOBF2nUpDydkpxHWSYdpJnj22ruggUQyT3oGkt0ob_WA/exec";
 
+    const shopeeSchedule = {
+      '2026-10': 6122.49, '2026-11': 5859.88, '2026-12': 5856.56,
+      '2027-01': 4019.32, '2027-02': 4019.32, '2027-03': 4019.32
+    };
+
+    function getDefaultVariableBudgets() {
+      return [
+        { id: 'house_loan', name: 'ผ่อนบ้าน', budget: 10000, icon: '🏠' },
+        { id: 'fuel_toon', name: 'น้ำมันรถตูน', budget: 5000, icon: '⛽' },
+        { id: 'fuel_aom', name: 'น้ำมันรถอ้อม', budget: 2000, icon: '🚗' },
+        { id: 'food', name: 'อาหารการกิน', budget: 3000, icon: '🍲' },
+        { id: 'trip', name: 'เงินเที่ยวครอบครัว', budget: 1000, icon: '🏖️' },
+        { id: 'personal_toon', name: 'เงินส่วนตัวตูน', budget: 1000, icon: '🧔' },
+        { id: 'personal_aom', name: 'เงินส่วนตัวอ้อม', budget: 1000, icon: '👩' },
+        { id: 'other_exp', name: 'ค่าใช้จ่ายทั่วไปอื่นๆ', budget: 0, icon: '🛒' }
+      ];
+    }
+
+    function getDefaultIncomeConfigs() {
+      return [
+        { id: 'inc_toon', name: 'เงินเดือนตูน', icon: '🧔' },
+        { id: 'inc_uthon', name: 'รายได้ร้านอุทร (อ้อม)', icon: '🏪' },
+        { id: 'inc_lotto_1', name: 'รายได้จากหวย งวด 1 (อ้อม)', icon: '🎟️' },
+        { id: 'inc_lotto_16', name: 'รายได้จากหวย งวด 16 (อ้อม)', icon: '🎟️' },
+        { id: 'inc_other', name: 'รายรับพิเศษ/อื่นๆ', icon: '💵' }
+      ];
+    }
+
+    function getDefaultFixedBills(ym) {
+      return [
+        { id: 'b_house_loan', title: 'ผ่อนบ้าน', amount: 10000, dueDate: '5' },
+        { id: 'b_water_elec', title: 'ค่าน้ำและค่าไฟ (บิลบ้าน)', amount: 2000, dueDate: '25' },
+        { id: 'b_common', title: 'ค่าส่วนกลางบ้าน', amount: 1000, dueDate: '5' },
+        { id: 'b_phone_aom', title: 'ผ่อนโทรศัพท์อ้อม', amount: 1600, dueDate: '15' },
+        { id: 'b_netflix', title: 'Netflix', amount: 349, dueDate: '10' },
+        { id: 'b_tuition', title: 'ค่าเทอมเฉลี่ยรายเดือน', amount: 8000, dueDate: '1' },
+        { id: 'b_tutor', title: 'ค่าเรียนพิเศษลูก', amount: 1500, dueDate: '5' },
+        { id: 'b_mom', title: 'คืนเงินแม่', amount: 5000, dueDate: '1' },
+        { id: 'b_shopee', title: 'Shopee', amount: (shopeeSchedule[ym] || 0), dueDate: '5' }
+      ];
+    }
+
     let currentYM = '2026-10';
     let currentTxType = 'expense';
     let currentTxPayer = 'toon';
-    let localData = JSON.parse(localStorage.getItem('family_budget_clean_sync_v1') || '{}');
+    let localData = JSON.parse(localStorage.getItem('family_budget_sheets_flat_v8') || '{}');
 
     function switchTab(tabId) {
-      ['daily', 'dashboard'].forEach(t => {
+      ['daily', 'dashboard', 'bills', 'accounts'].forEach(t => {
         const el = document.getElementById('tabContent-' + t);
         const nav = document.getElementById('nav-' + t);
         if (el) el.classList.toggle('hidden', t !== tabId);
         if (nav) {
           nav.className = t === tabId ? 
-            "text-xs font-medium px-3.5 py-2 rounded-lg bg-blue-600 text-white shadow-xs transition-all" : 
-            "text-xs font-medium px-3.5 py-2 rounded-lg text-blue-100 hover:bg-blue-800/60 transition-all";
+            "flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-lg bg-blue-600 text-white shadow-xs transition-all whitespace-nowrap" : 
+            "flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-lg text-blue-100 hover:bg-blue-800/60 transition-all whitespace-nowrap";
         }
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -219,9 +322,12 @@
 
     function ensureData(ym) {
       if (!localData[ym]) {
-        localData[ym] = { transactions: [] };
+        localData[ym] = { transactions: [], variableBudgets: getDefaultVariableBudgets(), fixedBills: getDefaultFixedBills(ym), incomeConfigs: getDefaultIncomeConfigs() };
       }
       if (!localData[ym].transactions) localData[ym].transactions = [];
+      if (!localData[ym].variableBudgets) localData[ym].variableBudgets = getDefaultVariableBudgets();
+      if (!localData[ym].fixedBills) localData[ym].fixedBills = getDefaultFixedBills(ym);
+      if (!localData[ym].incomeConfigs) localData[ym].incomeConfigs = getDefaultIncomeConfigs();
     }
 
     function fetchDataFromSheet() {
@@ -232,7 +338,7 @@
           ensureData(currentYM);
           if (Array.isArray(data)) {
             localData[currentYM].transactions = data;
-            localStorage.setItem('family_budget_clean_sync_v1', JSON.stringify(localData));
+            localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData));
             renderAll();
           }
         })
@@ -247,18 +353,71 @@
       const dateEl = document.getElementById('txDate');
       if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
       setTxPayer('toon');
-      document.getElementById('txCategory').value = '';
       document.getElementById('txAmount').value = '';
       document.getElementById('txNote').value = '';
+      populateCategoriesAndBillsDropdown();
       document.getElementById('txModal').classList.remove('hidden');
     }
 
     function closeTxModal() { document.getElementById('txModal').classList.add('hidden'); }
 
+    function populateCategoriesAndBillsDropdown() {
+      const catSelect = document.getElementById('txCategory');
+      if (!catSelect) return;
+      catSelect.innerHTML = '';
+      ensureData(currentYM);
+
+      if (currentTxType === 'expense') {
+        const optgroupBills = document.createElement('optgroup');
+        optgroupBills.label = '📋 บิลประจำงวด';
+        (localData[currentYM].fixedBills || []).forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = 'BILL:' + b.id;
+          opt.innerText = `🔗 ${b.title} (งบ ฿${b.amount.toLocaleString()})`;
+          opt.dataset.amount = b.amount;
+          opt.dataset.title = b.title;
+          optgroupBills.appendChild(opt);
+        });
+        catSelect.appendChild(optgroupBills);
+
+        const optgroupDaily = document.createElement('optgroup');
+        optgroupDaily.label = '🛒 ค่าใช้จ่ายทั่วไปรายวัน';
+        (localData[currentYM].variableBudgets || getDefaultVariableBudgets()).forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = 'CAT:' + c.id;
+          opt.innerText = `${c.icon || '🛒'} ${c.name} ${c.budget > 0 ? `(งบ ฿${c.budget.toLocaleString()})` : ''}`;
+          optgroupDaily.appendChild(opt);
+        });
+        catSelect.appendChild(optgroupDaily);
+
+        catSelect.onchange = (e) => {
+          const val = e.target.value;
+          const selectedOption = e.target.selectedOptions[0];
+          if (val.startsWith('BILL:') && selectedOption) {
+            const amount = selectedOption.dataset.amount;
+            if (amount) {
+              document.getElementById('txAmount').value = amount;
+              document.getElementById('txNote').value = `จ่ายบิล: ${selectedOption.dataset.title}`;
+            }
+          }
+        };
+      } else {
+        (localData[currentYM].incomeConfigs || getDefaultIncomeConfigs()).forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = 'INC:' + c.id;
+          opt.innerText = `${c.icon || '💰'} ${c.name}`;
+          catSelect.appendChild(opt);
+        });
+        catSelect.onchange = null;
+      }
+    }
+
     function setTxType(type) {
       currentTxType = type;
       document.getElementById('btnTxTypeExpense').className = type === 'expense' ? 'py-2.5 rounded-lg bg-rose-600 text-white text-center shadow-2xs' : 'py-2.5 rounded-lg text-slate-600 text-center';
       document.getElementById('btnTxTypeIncome').className = type === 'income' ? 'py-2.5 rounded-lg bg-emerald-600 text-white text-center shadow-2xs' : 'py-2.5 rounded-lg text-slate-600 text-center';
+      document.getElementById('lblTxPayer').innerText = type === 'expense' ? 'ผู้ทำรายการจ่าย:' : 'ผู้รับรายรับ:';
+      populateCategoriesAndBillsDropdown();
     }
 
     function setTxPayer(payer) {
@@ -269,7 +428,7 @@
 
     function saveDailyTransaction() {
       const dateVal = document.getElementById('txDate').value;
-      const category = document.getElementById('txCategory').value.trim() || 'ทั่วไป';
+      const selectVal = document.getElementById('txCategory').value;
       const amount = parseFloat(document.getElementById('txAmount').value) || 0;
       const note = document.getElementById('txNote').value.trim();
 
@@ -278,19 +437,36 @@
       const ym = dateVal ? dateVal.substring(0, 7) : currentYM;
       ensureData(ym);
 
+      let catId = '', catName = '', icon = '📝';
+      if (selectVal.startsWith('BILL:')) {
+        catId = selectVal.replace('BILL:', '');
+        const bObj = localData[ym].fixedBills.find(b => b.id === catId);
+        catName = bObj ? bObj.title : 'บิลประจำงวด'; icon = '🔗';
+      } else if (selectVal.startsWith('CAT:')) {
+        catId = selectVal.replace('CAT:', '');
+        const cObj = localData[ym].variableBudgets.find(c => c.id === catId);
+        catName = cObj ? cObj.name : 'ค่าใช้จ่าย'; icon = cObj?.icon || '🛒';
+      } else if (selectVal.startsWith('INC:')) {
+        catId = selectVal.replace('INC:', '');
+        const iObj = localData[ym].incomeConfigs.find(c => c.id === catId);
+        catName = iObj ? iObj.name : 'รายรับ'; icon = iObj?.icon || '💰';
+      }
+
       const newTx = {
         id: 'tx_' + Date.now(),
         date: dateVal,
         type: currentTxType,
         payer: currentTxPayer,
-        categoryName: category,
+        categoryId: catId,
+        categoryName: catName,
+        icon: icon,
         amount: amount,
         note: note,
         month: ym
       };
 
       localData[ym].transactions.unshift(newTx);
-      localStorage.setItem('family_budget_clean_sync_v1', JSON.stringify(localData));
+      localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData));
 
       if (SCRIPT_URL) {
         fetch(SCRIPT_URL, {
@@ -305,6 +481,7 @@
 
       closeTxModal();
       renderAll();
+      alert('บันทึกข้อมูลและส่งเข้า Google Sheets เรียบร้อย!');
     }
 
     function deleteTransaction(txId) {
@@ -313,7 +490,7 @@
         const idx = txs.findIndex(t => t.id === txId);
         if (idx > -1) {
           txs.splice(idx, 1);
-          localStorage.setItem('family_budget_clean_sync_v1', JSON.stringify(localData));
+          localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData));
           renderAll();
 
           if (SCRIPT_URL) {
@@ -330,61 +507,232 @@
       }
     }
 
-    function renderAll() {
-      ensureData(currentYM);
-      const txs = localData[currentYM].transactions || [];
-      const txList = document.getElementById('dailyTxList');
-      if (!txList) return;
+    function openPersonDetailsModal(personKey) {
+      const modal = document.getElementById('personDetailsModal');
+      const title = document.getElementById('pdmTitle');
+      const totalTxt = document.getElementById('pdmTotalPaid');
+      const list = document.getElementById('pdmListContainer');
+      if (!modal || !title || !totalTxt || !list) return;
 
-      txList.innerHTML = '';
-      let toonIncome = 0, aomIncome = 0, toonExpense = 0, aomExpense = 0;
+      title.innerHTML = personKey === 'toon' ? '🧔 รายการที่ตูนจ่ายไปแล้วทั้งหมด' : '👩 รายการที่อ้อมจ่ายไปแล้วทั้งหมด';
+      const cur = localData[currentYM];
+      let totalPaid = 0; list.innerHTML = ''; let itemCount = 0;
 
-      txs.forEach(t => {
-        const isToon = t.payer === 'toon';
-        const isInc = t.type === 'income';
-        const catName = t.categoryName || t.category || 'ทั่วไป';
-        
-        if (isInc) {
-          if (isToon) toonIncome += t.amount; else aomIncome += t.amount;
-        } else {
-          if (isToon) toonExpense += t.amount; else aomExpense += t.amount;
+      (cur.transactions || []).forEach(t => {
+        if (t.type === 'expense' && t.payer === personKey) {
+          totalPaid += t.amount; itemCount++;
+          const div = document.createElement('div');
+          div.className = 'p-3 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center text-xs';
+          div.innerHTML = `<div><div class="font-bold text-slate-800">${t.categoryName}</div><div class="text-[10px] text-slate-400">${t.date}</div></div><strong class="text-rose-600">฿${t.amount.toLocaleString()}</strong>`;
+          list.appendChild(div);
         }
-
-        const div = document.createElement('div');
-        div.className = 'p-3.5 flex items-center justify-between hover:bg-slate-50 transition-all';
-        div.innerHTML = `
-          <div class="flex items-center gap-3">
-            <span class="w-9 h-9 rounded-xl flex items-center justify-center text-sm ${isInc ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'}">${isInc ? '💰' : '💸'}</span>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-xs text-slate-800">${catName}</span>
-                <span class="text-[9px] font-bold px-2 py-0.5 rounded-md ${isToon ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-amber-50 text-amber-800 border border-amber-200'}">${isToon ? '🧔 ตูน' : '👩 อ้อม'}</span>
-              </div>
-              <div class="text-[11px] text-slate-400 mt-0.5">🗓️ ${t.date} ${t.note ? '• ' + t.note : ''}</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="font-bold text-xs md:text-sm ${isInc ? 'text-emerald-600' : 'text-rose-600'}">${isInc ? '+' : '-'}฿${t.amount.toLocaleString()}</span>
-            <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-600 text-xs p-1">✕</button>
-          </div>`;
-        txList.appendChild(div);
       });
 
-      document.getElementById('quickTxCount').innerText = `รวม ${txs.length} รายการ`;
-      if (txs.length === 0) {
-        txList.innerHTML = `<div class="text-center py-10 text-slate-400 text-xs">✨ ยังไม่มีรายการบันทึกในเดือนนี้</div>`;
+      if (itemCount === 0) list.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">ยังไม่มีรายการจ่ายในเดือนนี้</div>`;
+      totalTxt.innerText = `฿${totalPaid.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      modal.classList.remove('hidden');
+    }
+
+    function closePersonDetailsModal() { document.getElementById('personDetailsModal').classList.add('hidden'); }
+
+    function promptAddNewIncomeConfig() {
+      const name = prompt('ชื่อรายการรายรับใหม่:');
+      if (!name) return;
+      ensureData(currentYM);
+      localData[currentYM].incomeConfigs.push({ id: 'inc_' + Date.now(), name, icon: '💵' });
+      localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData));
+      renderMasterPlanSettings();
+    }
+
+    function promptAddNewVariableBudget() {
+      const name = prompt('ชื่อหมวดงบผันแปรใหม่:');
+      if (!name) return;
+      const budget = parseFloat(prompt('งบประมาณ (บาท):', '1000')) || 0;
+      ensureData(currentYM);
+      localData[currentYM].variableBudgets.push({ id: 'v_' + Date.now(), name, budget, icon: '🏷️' });
+      localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData));
+      renderMasterPlanSettings();
+      renderAll();
+    }
+
+    function promptAddNewFixedBill() {
+      const title = prompt('ชื่อบิลประจำงวดใหม่:');
+      if (!title) return;
+      const amount = parseFloat(prompt('ยอดงบ (บาท):', '1000')) || 0;
+      const dueDate = prompt('วันกำหนดจ่าย:', '1') || '1';
+      ensureData(currentYM);
+      localData[currentYM].fixedBills.push({ id: 'b_' + Date.now(), title, amount, dueDate });
+      localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData));
+      renderMasterPlanSettings();
+      renderAll();
+    }
+
+    function renderMasterPlanSettings() {
+      ensureData(currentYM);
+      const cur = localData[currentYM];
+
+      const iList = document.getElementById('planIncomeConfigList');
+      if (iList) {
+        iList.innerHTML = '';
+        (cur.incomeConfigs || []).forEach((cfg, idx) => {
+          const div = document.createElement('div');
+          div.className = 'flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs';
+          div.innerHTML = `<input type="text" value="${cfg.icon || '💵'}" onchange="localData[currentYM].incomeConfigs[${idx}].icon=this.value; localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData));" class="w-8 text-center bg-white border rounded p-1"><input type="text" value="${cfg.name}" onchange="localData[currentYM].incomeConfigs[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData));" class="font-semibold bg-transparent border-b border-slate-300 flex-1 px-1"><button onclick="localData[currentYM].incomeConfigs.splice(${idx},1); localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData)); renderMasterPlanSettings();" class="text-slate-400 hover:text-rose-600 font-bold">✕</button>`;
+          iList.appendChild(div);
+        });
       }
 
-      document.getElementById('walletToonIncome').innerText = `฿${toonIncome.toLocaleString()}`;
-      document.getElementById('walletToonExpense').innerText = `฿${toonExpense.toLocaleString()}`;
-      document.getElementById('walletToonBalance').innerText = `฿${(toonIncome - toonExpense).toLocaleString()}`;
-      document.getElementById('walletAomIncome').innerText = `฿${aomIncome.toLocaleString()}`;
-      document.getElementById('walletAomExpense').innerText = `฿${aomExpense.toLocaleString()}`;
-      document.getElementById('walletAomBalance').innerText = `฿${(aomIncome - aomExpense).toLocaleString()}`;
+      const vList = document.getElementById('planVariableBudgetList');
+      if (vList) {
+        vList.innerHTML = '';
+        (cur.variableBudgets || []).forEach((cfg, idx) => {
+          const div = document.createElement('div');
+          div.className = 'flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs';
+          div.innerHTML = `<span class="w-8 text-center">${cfg.icon || '🛒'}</span><input type="text" value="${cfg.name}" onchange="localData[currentYM].variableBudgets[${idx}].name=this.value; localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData)); renderAll();" class="font-semibold bg-transparent border-b border-slate-300 flex-1 px-1"><input type="number" value="${cfg.budget}" onchange="localData[currentYM].variableBudgets[${idx}].budget=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border border-slate-300 rounded p-1"><button onclick="localData[currentYM].variableBudgets.splice(${idx},1); localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-400 hover:text-rose-600 font-bold">✕</button>`;
+          vList.appendChild(div);
+        });
+      }
 
-      document.getElementById('dashTotalIncome').innerText = `฿${(toonIncome + aomIncome).toLocaleString()}`;
-      document.getElementById('dashTotalExpense').innerText = `฿${(toonExpense + aomExpense).toLocaleString()}`;
-      document.getElementById('dashTotalNet').innerText = `฿${((toonIncome + aomIncome) - (toonExpense + aomExpense)).toLocaleString()}`;
+      const bList = document.getElementById('planFixedBillList');
+      if (bList) {
+        bList.innerHTML = '';
+        (cur.fixedBills || []).forEach((bill, idx) => {
+          const div = document.createElement('div');
+          div.className = 'flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs';
+          div.innerHTML = `
+            <div class="flex-1 flex items-center gap-2">
+              <input type="text" value="${bill.title}" onchange="localData[currentYM].fixedBills[${idx}].title=this.value; localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData)); renderAll(); renderMasterPlanSettings();" class="font-semibold bg-transparent border-b border-slate-300 flex-1">
+              <span class="text-[11px] text-slate-500 whitespace-nowrap">วันที่:</span>
+              <input type="number" value="${bill.dueDate}" onchange="localData[currentYM].fixedBills[${idx}].dueDate=this.value; localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData)); renderAll();" class="w-12 text-center bg-white border border-slate-300 rounded p-1 font-bold">
+            </div>
+            <input type="number" value="${bill.amount}" onchange="localData[currentYM].fixedBills[${idx}].amount=parseFloat(this.value)||0; localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData)); renderAll();" class="w-24 text-right font-bold bg-white border border-slate-300 rounded p-1">
+            <button onclick="localData[currentYM].fixedBills.splice(${idx},1); localStorage.setItem('family_budget_sheets_flat_v8', JSON.stringify(localData)); renderMasterPlanSettings(); renderAll();" class="text-slate-400 hover:text-rose-600 font-bold">✕</button>`;
+          bList.appendChild(div);
+        });
+      }
+    }
+
+    function renderAll() {
+      ensureData(currentYM);
+      const cur = localData[currentYM];
+      const txs = cur.transactions || [];
+      const bills = cur.fixedBills || [];
+      const vBudgets = cur.variableBudgets || getDefaultVariableBudgets();
+
+      const txList = document.getElementById('dailyTxList');
+      if (txList) {
+        txList.innerHTML = '';
+        let toonIncome = 0, aomIncome = 0, toonExpense = 0, aomExpense = 0;
+        const categoryExpenseTotals = {};
+        const billPayments = {};
+
+        txs.forEach(t => {
+          const isToon = t.payer === 'toon';
+          const isInc = t.type === 'income';
+          if (isInc) {
+            if (isToon) toonIncome += t.amount; else aomIncome += t.amount;
+          } else {
+            if (isToon) toonExpense += t.amount; else aomExpense += t.amount;
+            categoryExpenseTotals[t.categoryId] = (categoryExpenseTotals[t.categoryId] || 0) + t.amount;
+            
+            const cleanName = (t.categoryName || "").trim();
+            if (cleanName) {
+              if (!billPayments[cleanName]) { billPayments[cleanName] = { total: 0, payers: new Set() }; }
+              billPayments[cleanName].total += t.amount;
+              billPayments[cleanName].payers.add(isToon ? '🧔 ตูน' : '👩 อ้อม');
+            }
+          }
+
+          const div = document.createElement('div');
+          div.className = 'p-3.5 flex items-center justify-between hover:bg-slate-50 transition-all';
+          div.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-xl flex items-center justify-center text-sm ${isInc ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'}">${t.icon || '💸'}</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs text-slate-800">${t.categoryName}</span>
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-md ${isToon ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-amber-50 text-amber-800 border border-amber-200'}">${isToon ? '🧔 ตูน' : '👩 อ้อม'}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">🗓️ ${t.date} ${t.note ? '• ' + t.note : ''}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-bold text-xs md:text-sm ${isInc ? 'text-emerald-600' : 'text-rose-600'}">${isInc ? '+' : '-'}฿${t.amount.toLocaleString()}</span>
+              <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-600 text-xs p-1">✕</button>
+            </div>`;
+          txList.appendChild(div);
+        });
+
+        document.getElementById('quickTxCount').innerText = `รวม ${txs.length} รายการ`;
+        if (txs.length === 0) {
+          txList.innerHTML = `<div class="text-center py-10 text-slate-400 text-xs">✨ ยังไม่มีรายการบันทึกในเดือนนี้</div>`;
+        }
+
+        let fixedBudgetTotal = 0;
+        const billsTable = document.getElementById('fixedBillsTableBody');
+        if (billsTable) {
+          billsTable.innerHTML = '';
+          bills.forEach(b => {
+            fixedBudgetTotal += b.amount;
+            const bTitle = (b.title || "").trim();
+            const payment = billPayments[bTitle];
+            let actualPaid = payment ? payment.total : 0;
+            let payerText = payment ? Array.from(payment.payers).join(', ') : '-';
+            
+            let statusHtml = `<span class="px-2.5 py-1 rounded-md text-[10px] bg-amber-50 text-amber-700 border border-amber-200 font-medium">⏳ รอชำระ</span>`;
+            if (actualPaid > 0) {
+              if (actualPaid >= b.amount) {
+                statusHtml = `<span class="px-2.5 py-1 rounded-md text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">✓ ชำระเต็มจำนวน</span>`;
+              } else {
+                statusHtml = `<span class="px-2.5 py-1 rounded-md text-[10px] bg-blue-50 text-blue-700 border border-blue-200 font-medium">⚡ ชำระบางส่วน</span>`;
+              }
+            }
+
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50/80 bg-white';
+            tr.innerHTML = `
+              <td class="py-3 px-4 text-center"><span class="bg-slate-100 font-semibold px-2 py-1 rounded-md text-[11px] text-slate-600">วันที่ ${b.dueDate}</span></td>
+              <td class="py-3 px-4 font-semibold text-slate-800">${b.title}</td>
+              <td class="py-3 px-4 text-center text-[11px] font-medium text-slate-600">${payerText}</td>
+              <td class="py-3 px-4 text-right font-medium text-slate-600">฿${b.amount.toLocaleString()}</td>
+              <td class="py-3 px-4 text-right font-bold text-rose-600">${actualPaid > 0 ? '฿' + actualPaid.toLocaleString() : '-'}</td>
+              <td class="py-3 px-4 text-center">${statusHtml}</td>`;
+            billsTable.appendChild(tr);
+          });
+        }
+        document.getElementById('fixedBillsTotalBadge').innerText = `งบรวม: ฿${fixedBudgetTotal.toLocaleString()}`;
+
+        const trackerContainer = document.getElementById('budgetTrackerContainer');
+        if (trackerContainer) {
+          trackerContainer.innerHTML = '';
+          vBudgets.forEach(cfg => {
+            const actualSpent = categoryExpenseTotals[cfg.id] || 0;
+            const percent = cfg.budget > 0 ? Math.min(100, (actualSpent / cfg.budget) * 100) : 0;
+            const div = document.createElement('div');
+            div.className = 'bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 text-xs';
+            div.innerHTML = `
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-800"><span>${cfg.icon || '🛒'}</span> ${cfg.name}</span>
+                <div class="text-right"><span class="font-bold text-slate-900">ใช้จริง ฿${actualSpent.toLocaleString()}</span>${cfg.budget > 0 ? `<span class="text-slate-400 text-[11px]"> / งบ ฿${cfg.budget.toLocaleString()}</span>` : ''}</div>
+              </div>
+              ${cfg.budget > 0 ? `<div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden"><div class="bg-blue-600 h-full rounded-full transition-all" style="width: ${percent}%"></div></div>` : ''}`;
+            trackerContainer.appendChild(div);
+          });
+        }
+
+        document.getElementById('walletToonIncome').innerText = `฿${toonIncome.toLocaleString()}`;
+        document.getElementById('walletToonExpense').innerText = `฿${toonExpense.toLocaleString()}`;
+        document.getElementById('walletToonBalance').innerText = `฿${(toonIncome - toonExpense).toLocaleString()}`;
+        document.getElementById('walletAomIncome').innerText = `฿${aomIncome.toLocaleString()}`;
+        document.getElementById('walletAomExpense').innerText = `฿${aomExpense.toLocaleString()}`;
+        document.getElementById('walletAomBalance').innerText = `฿${(aomIncome - aomExpense).toLocaleString()}`;
+
+        document.getElementById('dashTotalIncome').innerText = `฿${(toonIncome + aomIncome).toLocaleString()}`;
+        document.getElementById('dashTotalExpense').innerText = `฿${(toonExpense + aomExpense).toLocaleString()}`;
+        document.getElementById('dashTotalNet').innerText = `฿${((toonIncome + aomIncome) - (toonExpense + aomExpense)).toLocaleString()}`;
+      }
+
+      renderMasterPlanSettings();
     }
 
     window.onload = () => {
